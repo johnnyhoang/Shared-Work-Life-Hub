@@ -2,21 +2,21 @@
 
 import React, { useState } from 'react';
 import { useHub } from '@/context/HubContext';
-import { Idea, IdeaStatus } from '@/types';
+import { useI18n } from '@/lib/i18n';
+import { IdeaStatus } from '@/types';
 import { formatRelativeTime } from '@/lib/dateUtils';
 import {
-  Lightbulb,
   Plus,
   ArrowRight,
   CheckCircle2,
   Sparkles,
   HelpCircle,
   Calendar,
-  Layers,
 } from 'lucide-react';
 
 export function IdeasScreen() {
-  const { hubState, createIdea, updateIdea, convertIdea, openQuickAction } = useHub();
+  const { hubState, createIdea, updateIdea, convertIdea } = useHub();
+  const { t, language } = useI18n();
   const [newTitle, setNewTitle] = useState('');
   const [newDesc, setNewDesc] = useState('');
   const [selectedProjectId, setSelectedProjectId] = useState<string>('');
@@ -41,10 +41,10 @@ export function IdeasScreen() {
   };
 
   const stages: { status: IdeaStatus; label: string; icon: React.ComponentType<{ className?: string }>; color: string }[] = [
-    { status: 'idea', label: 'Raw Ideas', icon: Sparkles, color: 'text-amber-500 bg-amber-50 dark:bg-amber-950/30' },
-    { status: 'maybe', label: 'Maybe / Later', icon: HelpCircle, color: 'text-blue-500 bg-blue-50 dark:bg-blue-950/30' },
-    { status: 'planned', label: 'Planned', icon: Calendar, color: 'text-purple-500 bg-purple-50 dark:bg-purple-950/30' },
-    { status: 'converted', label: 'Converted to Task', icon: CheckCircle2, color: 'text-emerald-500 bg-emerald-50 dark:bg-emerald-950/30' },
+    { status: 'idea', label: t.ideas.rawIdeas, icon: Sparkles, color: 'text-amber-500 bg-amber-50 dark:bg-amber-950/30' },
+    { status: 'maybe', label: t.ideas.maybe, icon: HelpCircle, color: 'text-blue-500 bg-blue-50 dark:bg-blue-950/30' },
+    { status: 'planned', label: t.ideas.planned, icon: Calendar, color: 'text-purple-500 bg-purple-50 dark:bg-purple-950/30' },
+    { status: 'converted', label: t.ideas.converted, icon: CheckCircle2, color: 'text-emerald-500 bg-emerald-50 dark:bg-emerald-950/30' },
   ];
 
   return (
@@ -53,10 +53,10 @@ export function IdeasScreen() {
       <div className="flex items-center justify-between gap-3 pt-1">
         <div>
           <h1 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
-            Ideas Pipeline
+            {t.ideas.title}
           </h1>
           <p className="text-xs text-zinc-500 dark:text-zinc-400">
-            Lightweight concept incubator (Idea → Maybe → Planned → Task)
+            {t.ideas.subtitle}
           </p>
         </div>
 
@@ -65,7 +65,7 @@ export function IdeasScreen() {
           className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-amber-600 hover:bg-amber-700 active:scale-95 rounded-xl shadow-xs transition"
         >
           <Plus className="w-4 h-4" />
-          <span>New Idea</span>
+          <span>{t.ideas.newIdea}</span>
         </button>
       </div>
 
@@ -77,7 +77,7 @@ export function IdeasScreen() {
         >
           <input
             type="text"
-            placeholder="Idea title (e.g. Daily voice check-in)..."
+            placeholder={t.ideas.title}
             value={newTitle}
             onChange={(e) => setNewTitle(e.target.value)}
             autoFocus
@@ -85,7 +85,7 @@ export function IdeasScreen() {
           />
           <textarea
             rows={2}
-            placeholder="Details or rough notes..."
+            placeholder={t.work.taskDesc}
             value={newDesc}
             onChange={(e) => setNewDesc(e.target.value)}
             className="w-full px-3 py-1.5 text-xs rounded-xl bg-white dark:bg-zinc-900 border border-amber-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-amber-500 resize-none"
@@ -96,7 +96,7 @@ export function IdeasScreen() {
               onChange={(e) => setSelectedProjectId(e.target.value)}
               className="px-2 py-1 text-xs rounded-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300"
             >
-              <option value="">(No Project)</option>
+              <option value="">{t.common.noProject}</option>
               {hubState.projects.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.name}
@@ -110,14 +110,14 @@ export function IdeasScreen() {
                 onClick={() => setIsQuickAdding(false)}
                 className="px-2.5 py-1 text-xs text-zinc-500 hover:text-zinc-700"
               >
-                Cancel
+                {t.common.cancel}
               </button>
               <button
                 type="submit"
                 disabled={!newTitle.trim()}
                 className="px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-lg shadow-xs"
               >
-                Save Idea
+                {t.ideas.saveIdea}
               </button>
             </div>
           </div>
@@ -146,7 +146,7 @@ export function IdeasScreen() {
 
               {stageIdeas.length === 0 ? (
                 <div className="py-2.5 px-4 rounded-xl border border-dashed border-zinc-200 dark:border-zinc-800 text-center text-xs text-zinc-400">
-                  No ideas in {stage.label.toLowerCase()}
+                  {stage.label}
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -178,7 +178,7 @@ export function IdeasScreen() {
                             </span>
                           )}
                           <span className="text-zinc-400 text-[10px]">
-                            by {idea.creator_name}
+                            {idea.creator_name}
                           </span>
                         </div>
 
@@ -190,7 +190,7 @@ export function IdeasScreen() {
                                 onClick={() => updateIdea(idea.id, { status: 'maybe' })}
                                 className="px-2 py-0.5 text-[10px] font-medium text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/40 rounded transition"
                               >
-                                → Maybe
+                                → {t.ideas.maybe}
                               </button>
                             )}
                             {idea.status === 'maybe' && (
@@ -198,29 +198,24 @@ export function IdeasScreen() {
                                 onClick={() => updateIdea(idea.id, { status: 'planned' })}
                                 className="px-2 py-0.5 text-[10px] font-medium text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950/40 rounded transition"
                               >
-                                → Planned
+                                → {t.ideas.planned}
                               </button>
                             )}
                             <button
                               onClick={() => {
-                                const assigneeId = prompt(
-                                  `Assign to whom?\n1: Johnny\n2: Child`,
-                                  '1'
-                                );
-                                const target =
-                                  assigneeId === '2' ? 'usr_child' : 'usr_johnny';
+                                const target = hubState.users[0]?.id || hubState.currentUser.id;
                                 convertIdea(idea.id, target);
                               }}
                               className="px-2 py-0.5 text-[10px] font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded transition flex items-center gap-1 shadow-2xs"
                             >
-                              <span>Convert to Task</span>
+                              <span>{t.ideas.convertToTask}</span>
                               <ArrowRight className="w-2.5 h-2.5" />
                             </button>
                           </div>
                         ) : (
                           <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
                             <CheckCircle2 className="w-3 h-3" />
-                            <span>Converted</span>
+                            <span>{t.ideas.convertedBadge}</span>
                           </span>
                         )}
                       </div>

@@ -2,31 +2,32 @@
 
 import React from 'react';
 import { useHub } from '@/context/HubContext';
+import { useI18n } from '@/lib/i18n';
 import { SinceLastVisitCard } from './SinceLastVisitCard';
 import { AttentionList } from './AttentionList';
 import { WeeklySummaryCard } from './WeeklySummaryCard';
 import { RecentActivitySection } from './RecentActivitySection';
-import { Plus, CheckSquare, Lightbulb, Scale, BookOpen } from 'lucide-react';
+import { CheckSquare, Lightbulb } from 'lucide-react';
 
 export function HomeScreen() {
   const { hubState, openQuickAction } = useHub();
+  const { t } = useI18n();
 
   if (!hubState) return null;
 
-  const { currentUser, partnerUser } = hubState;
+  const { currentUser } = hubState;
 
-  // Determine greeting based on current local hour
   const currentHour = new Date().getHours();
-  let greeting = 'Good morning';
+  let greeting = t.home.goodMorning;
   if (currentHour >= 12 && currentHour < 18) {
-    greeting = 'Good afternoon';
+    greeting = t.home.goodAfternoon;
   } else if (currentHour >= 18 || currentHour < 5) {
-    greeting = 'Good evening';
+    greeting = t.home.goodEvening;
   }
 
   return (
     <div className="space-y-4 pb-20 md:pb-8">
-      {/* Top Greeting & Quick Summary */}
+      {/* Top Greeting */}
       <div className="flex items-center justify-between gap-3 pt-1">
         <div>
           <h1 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50 flex items-center gap-2">
@@ -34,30 +35,30 @@ export function HomeScreen() {
             <span className="text-xl">👋</span>
           </h1>
           <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
-            Collaborating with <strong className="text-zinc-700 dark:text-zinc-300">{partnerUser.name}</strong> ({partnerUser.location})
+            {t.home.teamOverview}
           </p>
         </div>
 
-        {/* Floating Quick Entry for Desktop / Header */}
+        {/* Quick entry for desktop */}
         <div className="hidden sm:flex items-center gap-1.5">
           <button
             onClick={() => openQuickAction('task')}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 transition"
           >
             <CheckSquare className="w-3.5 h-3.5 text-blue-600" />
-            <span>Task</span>
+            <span>{t.home.quickTask}</span>
           </button>
           <button
             onClick={() => openQuickAction('idea')}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 transition"
           >
             <Lightbulb className="w-3.5 h-3.5 text-amber-500" />
-            <span>Idea</span>
+            <span>{t.home.quickIdea}</span>
           </button>
         </div>
       </div>
 
-      {/* 1. Since You Last Visited Banner */}
+      {/* 1. Since You Last Visited */}
       <SinceLastVisitCard />
 
       {/* 2. My Attention (Action Required & Waiting) */}

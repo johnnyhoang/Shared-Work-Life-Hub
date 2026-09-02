@@ -2,19 +2,20 @@
 
 import React from 'react';
 import { useHub } from '@/context/HubContext';
-import { Task, TaskPriority, TaskStatus } from '@/types';
+import { useI18n } from '@/lib/i18n';
+import { Task, TaskPriority } from '@/types';
 import { formatDueDate } from '@/lib/dateUtils';
 import {
   CheckCircle2,
   Circle,
   Clock,
   MessageSquare,
-  ArrowRight,
   UserCheck,
 } from 'lucide-react';
 
 export function TaskCard({ task }: { task: Task }) {
-  const { hubState, setSelectedTask, toggleTaskStatus, updateTask } = useHub();
+  const { hubState, setSelectedTask, toggleTaskStatus } = useHub();
+  const { t, language } = useI18n();
 
   if (!hubState) return null;
 
@@ -26,22 +27,22 @@ export function TaskCard({ task }: { task: Task }) {
   const dueInfo = formatDueDate(task.due_date);
 
   const priorityStyles: Record<TaskPriority, { bg: string; text: string; label: string }> = {
-    urgent: { bg: 'bg-rose-500 text-white', text: 'text-rose-600', label: 'Urgent' },
-    high: { bg: 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400', text: 'text-amber-600', label: 'High' },
-    medium: { bg: 'bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-400', text: 'text-blue-600', label: 'Med' },
-    low: { bg: 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400', text: 'text-zinc-500', label: 'Low' },
+    urgent: { bg: 'bg-rose-500 text-white', text: 'text-rose-600', label: t.statusLabels.urgent },
+    high: { bg: 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400', text: 'text-amber-600', label: t.statusLabels.high },
+    medium: { bg: 'bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-400', text: 'text-blue-600', label: t.statusLabels.medium },
+    low: { bg: 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400', text: 'text-zinc-500', label: t.statusLabels.low },
   };
 
   // Assignee direction label
   let assignmentLabel = '';
   if (isAssignedToMe && !isCreatedByMe) {
-    assignmentLabel = `${task.creator_name || 'Partner'} → You`;
+    assignmentLabel = `${task.creator_name || 'Team'} → ${language === 'vi' ? 'Bạn' : 'You'}`;
   } else if (!isAssignedToMe && isCreatedByMe) {
-    assignmentLabel = `You → ${task.assignee_name || 'Partner'}`;
+    assignmentLabel = `${language === 'vi' ? 'Bạn' : 'You'} → ${task.assignee_name || 'Team'}`;
   } else if (isAssignedToMe && isCreatedByMe) {
-    assignmentLabel = 'For You';
+    assignmentLabel = language === 'vi' ? 'Việc của bạn' : 'For You';
   } else {
-    assignmentLabel = `${task.creator_name || 'User'} → ${task.assignee_name || 'Partner'}`;
+    assignmentLabel = `${task.creator_name || 'User'} → ${task.assignee_name || 'Member'}`;
   }
 
   return (
@@ -65,7 +66,6 @@ export function TaskCard({ task }: { task: Task }) {
             ? 'text-emerald-500 dark:text-emerald-400'
             : 'text-zinc-400 hover:text-emerald-500 dark:text-zinc-600 dark:hover:text-emerald-400'
         }`}
-        title={isCompleted ? 'Mark as incomplete' : 'Mark as done'}
       >
         {isCompleted ? (
           <CheckCircle2 className="w-5 h-5 fill-emerald-100 dark:fill-emerald-950/40" />

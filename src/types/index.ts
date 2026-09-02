@@ -1,14 +1,16 @@
 export type UserId = string;
+export type UserRole = 'admin' | 'member';
 
 export interface User {
   id: UserId;
   name: string;
   avatar: string;
+  avatar_url?: string;
   email: string;
+  role: UserRole;
   timezone: string;
   location: string;
   flag: string;
-  role: string;
   color: string;
   last_visited_at: string; // ISO 8601 UTC
 }

@@ -2,12 +2,13 @@
 
 import React, { useState } from 'react';
 import { useHub } from '@/context/HubContext';
-import { Decision } from '@/types';
+import { useI18n } from '@/lib/i18n';
 import { formatRelativeTime } from '@/lib/dateUtils';
-import { Scale, Plus, Bookmark, Calendar, CheckCircle2 } from 'lucide-react';
+import { Scale, Plus } from 'lucide-react';
 
 export function DecisionsScreen() {
   const { hubState, createDecision } = useHub();
+  const { t } = useI18n();
   const [newTitle, setNewTitle] = useState('');
   const [newReason, setNewReason] = useState('');
   const [selectedProjectId, setSelectedProjectId] = useState<string>('');
@@ -36,10 +37,10 @@ export function DecisionsScreen() {
       <div className="flex items-center justify-between gap-3 pt-1">
         <div>
           <h1 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
-            Decisions Log
+            {t.decisions.title}
           </h1>
           <p className="text-xs text-zinc-500 dark:text-zinc-400">
-            Architectural and product choices with rationale
+            {t.decisions.subtitle}
           </p>
         </div>
 
@@ -48,7 +49,7 @@ export function DecisionsScreen() {
           className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-purple-600 hover:bg-purple-700 active:scale-95 rounded-xl shadow-xs transition"
         >
           <Plus className="w-4 h-4" />
-          <span>Record Decision</span>
+          <span>{t.decisions.newDecision}</span>
         </button>
       </div>
 
@@ -60,7 +61,7 @@ export function DecisionsScreen() {
         >
           <input
             type="text"
-            placeholder="Decision title (e.g. Use PostGIS for spatial search)..."
+            placeholder={t.decisions.decisionTitle}
             value={newTitle}
             onChange={(e) => setNewTitle(e.target.value)}
             autoFocus
@@ -68,7 +69,7 @@ export function DecisionsScreen() {
           />
           <textarea
             rows={3}
-            placeholder="Why was this decision made? (Rationale, trade-offs, constraints)..."
+            placeholder={t.decisions.reasonLabel}
             value={newReason}
             onChange={(e) => setNewReason(e.target.value)}
             className="w-full px-3 py-1.5 text-xs rounded-xl bg-white dark:bg-zinc-900 border border-purple-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
@@ -79,7 +80,7 @@ export function DecisionsScreen() {
               onChange={(e) => setSelectedProjectId(e.target.value)}
               className="px-2 py-1 text-xs rounded-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300"
             >
-              <option value="">(No Project Link)</option>
+              <option value="">{t.common.noProject}</option>
               {hubState.projects.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.name}
@@ -93,14 +94,14 @@ export function DecisionsScreen() {
                 onClick={() => setIsAdding(false)}
                 className="px-2.5 py-1 text-xs text-zinc-500 hover:text-zinc-700"
               >
-                Cancel
+                {t.common.cancel}
               </button>
               <button
                 type="submit"
                 disabled={!newTitle.trim() || !newReason.trim()}
                 className="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold rounded-lg shadow-xs"
               >
-                Save Decision
+                {t.decisions.saveDecision}
               </button>
             </div>
           </div>
@@ -111,7 +112,7 @@ export function DecisionsScreen() {
       <div className="space-y-3">
         {hubState.decisions.length === 0 ? (
           <div className="py-8 text-center text-xs text-zinc-400">
-            No decisions logged yet. Record important choices here.
+            {t.decisions.noDecisions}
           </div>
         ) : (
           hubState.decisions.map((decision) => (
@@ -137,7 +138,7 @@ export function DecisionsScreen() {
               <div className="pl-8">
                 <div className="text-xs text-zinc-600 dark:text-zinc-300 bg-zinc-50 dark:bg-zinc-800/60 p-3 rounded-xl border border-zinc-100 dark:border-zinc-800">
                   <span className="font-semibold text-zinc-500 dark:text-zinc-400 block mb-0.5 text-[10px] uppercase">
-                    Rationale / Context:
+                    {t.decisions.reasonLabel}
                   </span>
                   {decision.reason}
                 </div>
@@ -148,7 +149,7 @@ export function DecisionsScreen() {
                       {decision.project_name}
                     </span>
                   )}
-                  <span>By {decision.author_name}</span>
+                  <span>{decision.author_name}</span>
                 </div>
               </div>
             </div>

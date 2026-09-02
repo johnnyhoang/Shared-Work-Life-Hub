@@ -2,20 +2,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { useHub } from '@/context/HubContext';
+import { useI18n } from '@/lib/i18n';
 import { Task, TaskPriority, TaskStatus, Comment } from '@/types';
-import { formatDueDate, formatRelativeTime } from '@/lib/dateUtils';
+import { formatRelativeTime } from '@/lib/dateUtils';
 import {
   X,
   Trash2,
   Send,
-  User,
-  Calendar,
-  Flag,
-  FolderKanban,
   MessageSquare,
-  CheckCircle2,
-  Clock,
-  ArrowRight,
 } from 'lucide-react';
 
 export function TaskDetailModal() {
@@ -28,6 +22,7 @@ export function TaskDetailModal() {
     fetchComments,
     addComment,
   } = useHub();
+  const { t } = useI18n();
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -51,7 +46,6 @@ export function TaskDetailModal() {
       setProjectId(selectedTask.project_id);
       setDueDate(selectedTask.due_date ? selectedTask.due_date.split('T')[0] : '');
 
-      // Load comments
       fetchComments('task', selectedTask.id).then(setComments);
     }
   }, [selectedTask, fetchComments]);
@@ -76,17 +70,17 @@ export function TaskDetailModal() {
   };
 
   const statuses: { id: TaskStatus; label: string; color: string }[] = [
-    { id: 'inbox', label: 'Inbox', color: 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300' },
-    { id: 'todo', label: 'Todo', color: 'bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300' },
-    { id: 'in_progress', label: 'In Progress', color: 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300' },
-    { id: 'done', label: 'Done', color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300' },
+    { id: 'inbox', label: t.statusLabels.inbox, color: 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300' },
+    { id: 'todo', label: t.statusLabels.todo, color: 'bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300' },
+    { id: 'in_progress', label: t.statusLabels.in_progress, color: 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300' },
+    { id: 'done', label: t.statusLabels.done, color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300' },
   ];
 
   const priorities: { id: TaskPriority; label: string }[] = [
-    { id: 'urgent', label: 'Urgent' },
-    { id: 'high', label: 'High' },
-    { id: 'medium', label: 'Medium' },
-    { id: 'low', label: 'Low' },
+    { id: 'urgent', label: t.statusLabels.urgent },
+    { id: 'high', label: t.statusLabels.high },
+    { id: 'medium', label: t.statusLabels.medium },
+    { id: 'low', label: t.statusLabels.low },
   ];
 
   return (
@@ -99,13 +93,13 @@ export function TaskDetailModal() {
         <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-200 dark:border-zinc-800">
           <div className="flex items-center gap-2">
             <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">
-              Task Details
+              {t.work.taskDetails}
             </span>
           </div>
           <div className="flex items-center gap-1">
             <button
               onClick={() => {
-                if (confirm('Delete this task?')) {
+                if (confirm(t.work.deleteConfirm)) {
                   deleteTask(selectedTask.id);
                 }
               }}
@@ -128,7 +122,7 @@ export function TaskDetailModal() {
           {/* Status Tabs */}
           <div>
             <label className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block mb-1.5">
-              Status
+              {t.work.status}
             </label>
             <div className="grid grid-cols-4 gap-1.5">
               {statuses.map((s) => {
@@ -157,7 +151,7 @@ export function TaskDetailModal() {
           {/* Title Input */}
           <div>
             <label className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block mb-1">
-              Title
+              {t.work.taskTitle}
             </label>
             <input
               type="text"
@@ -171,14 +165,14 @@ export function TaskDetailModal() {
           {/* Description Textarea */}
           <div>
             <label className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block mb-1">
-              Description / Notes
+              {t.work.taskDesc}
             </label>
             <textarea
               rows={3}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               onBlur={() => handleSaveField({ description })}
-              placeholder="Add extra context, links or requirements..."
+              placeholder={t.work.taskDesc}
               className="w-full px-3 py-2 text-xs rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-zinc-900 dark:text-zinc-100 resize-none"
             />
           </div>
@@ -188,7 +182,7 @@ export function TaskDetailModal() {
             {/* Assignee */}
             <div>
               <label className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block mb-1">
-                Assignee
+                {t.work.assignee}
               </label>
               <select
                 value={assigneeId}
@@ -200,7 +194,7 @@ export function TaskDetailModal() {
               >
                 {hubState.users.map((u) => (
                   <option key={u.id} value={u.id}>
-                    {u.avatar} {u.name} ({u.role})
+                    {u.avatar || '👤'} {u.name} ({u.role === 'admin' ? t.team.roleLead : t.team.roleMember})
                   </option>
                 ))}
               </select>
@@ -209,7 +203,7 @@ export function TaskDetailModal() {
             {/* Priority */}
             <div>
               <label className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block mb-1">
-                Priority
+                {t.work.priority}
               </label>
               <select
                 value={priority}
@@ -231,7 +225,7 @@ export function TaskDetailModal() {
             {/* Project */}
             <div>
               <label className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block mb-1">
-                Project
+                {t.work.project}
               </label>
               <select
                 value={projectId || ''}
@@ -242,7 +236,7 @@ export function TaskDetailModal() {
                 }}
                 className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="">(No Project)</option>
+                <option value="">{t.common.noProject}</option>
                 {hubState.projects.map((proj) => (
                   <option key={proj.id} value={proj.id}>
                     {proj.name}
@@ -254,7 +248,7 @@ export function TaskDetailModal() {
             {/* Due Date */}
             <div>
               <label className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block mb-1">
-                Due Date
+                {t.work.dueDate}
               </label>
               <input
                 type="date"
@@ -272,7 +266,7 @@ export function TaskDetailModal() {
           <div className="pt-3 border-t border-zinc-200 dark:border-zinc-800">
             <h5 className="text-xs font-bold text-zinc-800 dark:text-zinc-200 flex items-center gap-1.5 mb-3">
               <MessageSquare className="w-3.5 h-3.5 text-blue-600" />
-              <span>Comments & Activity</span>
+              <span>{t.work.commentsTitle}</span>
               <span className="text-[11px] font-normal text-zinc-500">
                 ({comments.length})
               </span>
@@ -282,7 +276,7 @@ export function TaskDetailModal() {
             <div className="space-y-2.5 max-h-48 overflow-y-auto pr-1">
               {comments.length === 0 ? (
                 <div className="text-xs text-zinc-400 py-2 text-center">
-                  No comments yet. Leave a note or update for your partner.
+                  {t.work.noComments}
                 </div>
               ) : (
                 comments.map((c) => (
@@ -293,7 +287,7 @@ export function TaskDetailModal() {
                     <div className="flex items-center justify-between mb-1">
                       <div className="flex items-center gap-1.5 font-semibold text-zinc-800 dark:text-zinc-200">
                         <span>{c.user_avatar || '👤'}</span>
-                        <span>{c.user_name || 'User'}</span>
+                        <span>{c.user_name || 'Member'}</span>
                       </div>
                       <span className="text-[10px] text-zinc-400">
                         {formatRelativeTime(c.created_at)}
@@ -313,7 +307,7 @@ export function TaskDetailModal() {
                 type="text"
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
-                placeholder="Write a comment..."
+                placeholder={t.work.writeComment}
                 className="flex-1 px-3 py-2 text-xs rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-zinc-900 dark:text-zinc-100"
               />
               <button

@@ -2,15 +2,14 @@
 
 import React, { useState, useEffect } from 'react';
 import { useHub } from '@/context/HubContext';
-import { TaskPriority, TaskStatus, IdeaStatus, KnowledgeStatus } from '@/types';
+import { useI18n } from '@/lib/i18n';
+import { TaskPriority } from '@/types';
 import {
   X,
   CheckSquare,
   Lightbulb,
   Scale,
   BookOpen,
-  Send,
-  Plus,
 } from 'lucide-react';
 
 export function QuickActionModal() {
@@ -24,6 +23,7 @@ export function QuickActionModal() {
     createDecision,
     createKnowledge,
   } = useHub();
+  const { t } = useI18n();
 
   const [activeType, setActiveType] = useState<'task' | 'idea' | 'decision' | 'knowledge'>('task');
 
@@ -112,10 +112,10 @@ export function QuickActionModal() {
   };
 
   const types = [
-    { id: 'task' as const, label: 'Task', icon: CheckSquare, color: 'text-blue-600' },
-    { id: 'idea' as const, label: 'Idea', icon: Lightbulb, color: 'text-amber-500' },
-    { id: 'decision' as const, label: 'Decision', icon: Scale, color: 'text-purple-600' },
-    { id: 'knowledge' as const, label: 'Learning', icon: BookOpen, color: 'text-emerald-600' },
+    { id: 'task' as const, label: t.common.work, icon: CheckSquare, color: 'text-blue-600' },
+    { id: 'idea' as const, label: t.ideas.title, icon: Lightbulb, color: 'text-amber-500' },
+    { id: 'decision' as const, label: t.decisions.title, icon: Scale, color: 'text-purple-600' },
+    { id: 'knowledge' as const, label: t.knowledge.title, icon: BookOpen, color: 'text-emerald-600' },
   ];
 
   return (
@@ -128,7 +128,7 @@ export function QuickActionModal() {
         <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-200 dark:border-zinc-800">
           <div className="flex items-center gap-2">
             <span className="text-xs font-bold uppercase tracking-wider text-zinc-800 dark:text-zinc-200">
-              Quick Create
+              {t.common.quickAdd}
             </span>
           </div>
 
@@ -142,22 +142,22 @@ export function QuickActionModal() {
 
         {/* Type Selector Segmented Control */}
         <div className="grid grid-cols-4 p-2 bg-zinc-50 dark:bg-zinc-800/40 border-b border-zinc-200 dark:border-zinc-800 gap-1.5">
-          {types.map((t) => {
-            const Icon = t.icon;
-            const isActive = activeType === t.id;
+          {types.map((tItem) => {
+            const Icon = tItem.icon;
+            const isActive = activeType === tItem.id;
             return (
               <button
-                key={t.id}
+                key={tItem.id}
                 type="button"
-                onClick={() => setActiveType(t.id)}
+                onClick={() => setActiveType(tItem.id)}
                 className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl text-xs font-semibold transition ${
                   isActive
                     ? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 shadow-xs border border-zinc-200/80 dark:border-zinc-700'
                     : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200'
                 }`}
               >
-                <Icon className={`w-3.5 h-3.5 ${isActive ? t.color : ''}`} />
-                <span>{t.label}</span>
+                <Icon className={`w-3.5 h-3.5 ${isActive ? tItem.color : ''}`} />
+                <span className="truncate">{tItem.label}</span>
               </button>
             );
           })}
@@ -172,7 +172,7 @@ export function QuickActionModal() {
                 type="text"
                 value={taskTitle}
                 onChange={(e) => setTaskTitle(e.target.value)}
-                placeholder="What needs to be done?"
+                placeholder={t.work.taskTitle}
                 autoFocus
                 required
                 className="w-full px-3 py-2 text-xs font-semibold rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -181,13 +181,13 @@ export function QuickActionModal() {
                 rows={2}
                 value={taskDesc}
                 onChange={(e) => setTaskDesc(e.target.value)}
-                placeholder="Optional description / details..."
+                placeholder={t.work.taskDesc}
                 className="w-full px-3 py-1.5 text-xs rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
               />
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <div>
                   <label className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider block mb-1">
-                    Assign To
+                    {t.work.assignee}
                   </label>
                   <select
                     value={taskAssignee}
@@ -196,7 +196,7 @@ export function QuickActionModal() {
                   >
                     {hubState.users.map((u) => (
                       <option key={u.id} value={u.id}>
-                        {u.avatar} {u.name} {u.id === hubState.currentUser.id ? '(You)' : '(Partner)'}
+                        {u.avatar || '👤'} {u.name} ({u.role === 'admin' ? t.team.roleLead : t.team.roleMember})
                       </option>
                     ))}
                   </select>
@@ -204,30 +204,30 @@ export function QuickActionModal() {
 
                 <div>
                   <label className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider block mb-1">
-                    Priority
+                    {t.work.priority}
                   </label>
                   <select
                     value={taskPriority}
                     onChange={(e) => setTaskPriority(e.target.value as TaskPriority)}
                     className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100"
                   >
-                    <option value="medium">🟡 Medium</option>
-                    <option value="high">🟠 High</option>
-                    <option value="urgent">🔴 Urgent</option>
-                    <option value="low">⚪ Low</option>
+                    <option value="medium">{t.statusLabels.medium}</option>
+                    <option value="high">{t.statusLabels.high}</option>
+                    <option value="urgent">{t.statusLabels.urgent}</option>
+                    <option value="low">{t.statusLabels.low}</option>
                   </select>
                 </div>
 
                 <div>
                   <label className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider block mb-1">
-                    Project
+                    {t.work.project}
                   </label>
                   <select
                     value={taskProject}
                     onChange={(e) => setTaskProject(e.target.value)}
                     className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100"
                   >
-                    <option value="">(No Project)</option>
+                    <option value="">{t.common.noProject}</option>
                     {hubState.projects.map((p) => (
                       <option key={p.id} value={p.id}>
                         {p.name}
@@ -238,7 +238,7 @@ export function QuickActionModal() {
 
                 <div>
                   <label className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider block mb-1">
-                    Due Date
+                    {t.work.dueDate}
                   </label>
                   <input
                     type="date"
@@ -258,7 +258,7 @@ export function QuickActionModal() {
                 type="text"
                 value={ideaTitle}
                 onChange={(e) => setIdeaTitle(e.target.value)}
-                placeholder="What is your idea?"
+                placeholder={t.ideas.title}
                 autoFocus
                 required
                 className="w-full px-3 py-2 text-xs font-semibold rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-amber-500"
@@ -267,19 +267,19 @@ export function QuickActionModal() {
                 rows={3}
                 value={ideaDesc}
                 onChange={(e) => setIdeaDesc(e.target.value)}
-                placeholder="Concept details, potential benefits..."
+                placeholder={t.work.taskDesc}
                 className="w-full px-3 py-1.5 text-xs rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-amber-500 resize-none"
               />
               <div>
                 <label className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider block mb-1">
-                  Related Project (Optional)
+                  {t.work.project}
                 </label>
                 <select
                   value={ideaProject}
                   onChange={(e) => setIdeaProject(e.target.value)}
                   className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100"
                 >
-                  <option value="">(No Project)</option>
+                  <option value="">{t.common.noProject}</option>
                   {hubState.projects.map((p) => (
                     <option key={p.id} value={p.id}>
                       {p.name}
@@ -297,7 +297,7 @@ export function QuickActionModal() {
                 type="text"
                 value={decisionTitle}
                 onChange={(e) => setDecisionTitle(e.target.value)}
-                placeholder="Decision title (e.g. Choose DynamoDB vs PostgreSQL)"
+                placeholder={t.decisions.decisionTitle}
                 autoFocus
                 required
                 className="w-full px-3 py-2 text-xs font-semibold rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-purple-500"
@@ -306,20 +306,20 @@ export function QuickActionModal() {
                 rows={3}
                 value={decisionReason}
                 onChange={(e) => setDecisionReason(e.target.value)}
-                placeholder="Why was this decided? Mention constraints, rationale, trade-offs..."
+                placeholder={t.decisions.reasonLabel}
                 required
                 className="w-full px-3 py-1.5 text-xs rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
               />
               <div>
                 <label className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider block mb-1">
-                  Related Project (Optional)
+                  {t.work.project}
                 </label>
                 <select
                   value={decisionProject}
                   onChange={(e) => setDecisionProject(e.target.value)}
                   className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100"
                 >
-                  <option value="">(No Project)</option>
+                  <option value="">{t.common.noProject}</option>
                   {hubState.projects.map((p) => (
                     <option key={p.id} value={p.id}>
                       {p.name}
@@ -337,7 +337,7 @@ export function QuickActionModal() {
                 type="text"
                 value={knowledgeTopic}
                 onChange={(e) => setKnowledgeTopic(e.target.value)}
-                placeholder="Topic or Skill (e.g. Docker multi-stage builds)"
+                placeholder={t.knowledge.title}
                 autoFocus
                 required
                 className="w-full px-3 py-2 text-xs font-semibold rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-emerald-500"
@@ -346,19 +346,19 @@ export function QuickActionModal() {
                 rows={3}
                 value={knowledgeNotes}
                 onChange={(e) => setKnowledgeNotes(e.target.value)}
-                placeholder="Notes, references, key commands..."
+                placeholder={t.work.taskDesc}
                 className="w-full px-3 py-1.5 text-xs rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"
               />
               <div>
                 <label className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider block mb-1">
-                  Related Project (Optional)
+                  {t.work.project}
                 </label>
                 <select
                   value={knowledgeProject}
                   onChange={(e) => setKnowledgeProject(e.target.value)}
                   className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100"
                 >
-                  <option value="">(No Project)</option>
+                  <option value="">{t.common.noProject}</option>
                   {hubState.projects.map((p) => (
                     <option key={p.id} value={p.id}>
                       {p.name}
@@ -376,14 +376,14 @@ export function QuickActionModal() {
               onClick={closeQuickAction}
               className="px-3 py-1.5 text-xs font-medium text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
             >
-              Cancel
+              {t.common.cancel}
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
               className="px-4 py-1.5 bg-blue-600 hover:bg-blue-700 active:scale-95 text-white text-xs font-bold rounded-xl shadow-xs transition"
             >
-              {isSubmitting ? 'Saving...' : 'Save Item'}
+              {isSubmitting ? t.common.saving : t.common.save}
             </button>
           </div>
         </form>

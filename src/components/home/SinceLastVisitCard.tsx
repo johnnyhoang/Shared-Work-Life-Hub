@@ -2,15 +2,17 @@
 
 import React from 'react';
 import { useHub } from '@/context/HubContext';
+import { useI18n } from '@/lib/i18n';
 import { formatRelativeTime } from '@/lib/dateUtils';
 import { Bell, Check, Sparkles } from 'lucide-react';
 
 export function SinceLastVisitCard() {
   const { hubState, markVisited, setSelectedTask } = useHub();
+  const { t } = useI18n();
 
   if (!hubState) return null;
 
-  const { sinceLastVisit, partnerUser, currentUser } = hubState;
+  const { sinceLastVisit } = hubState;
   const changes = sinceLastVisit.changes;
 
   if (changes.length === 0) {
@@ -22,10 +24,10 @@ export function SinceLastVisitCard() {
           </div>
           <div>
             <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
-              You are all caught up!
+              {t.home.allCaughtUpTitle}
             </h3>
             <p className="text-xs text-zinc-600 dark:text-zinc-400">
-              No new changes since you last checked in.
+              {t.home.allCaughtUpDesc}
             </p>
           </div>
         </div>
@@ -44,14 +46,14 @@ export function SinceLastVisitCard() {
           <div>
             <div className="flex items-center gap-1.5">
               <span className="text-xs font-bold uppercase tracking-wider text-blue-700 dark:text-blue-300">
-                Since You Last Visited
+                {t.home.sinceLastVisit}
               </span>
               <span className="px-1.5 py-0.2 rounded-full bg-blue-600 text-white text-[10px] font-extrabold">
-                {changes.length} {changes.length === 1 ? 'change' : 'changes'}
+                {changes.length} {changes.length === 1 ? t.home.change : t.home.changes}
               </span>
             </div>
             <div className="text-[11px] text-zinc-600 dark:text-zinc-400">
-              What {partnerUser.name} worked on while you were away
+              {t.home.whatChangedDesc}
             </div>
           </div>
         </div>
@@ -62,7 +64,7 @@ export function SinceLastVisitCard() {
           className="flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-blue-700 dark:text-blue-300 bg-white/90 dark:bg-zinc-800/90 hover:bg-white dark:hover:bg-zinc-800 border border-blue-200 dark:border-blue-700 rounded-lg shadow-xs transition active:scale-95"
         >
           <Check className="w-3.5 h-3.5" />
-          <span>Caught Up</span>
+          <span>{t.home.caughtUp}</span>
         </button>
       </div>
 
@@ -95,12 +97,6 @@ export function SinceLastVisitCard() {
             </div>
           </div>
         ))}
-
-        {changes.length > 4 && (
-          <div className="text-center pt-1 text-[11px] font-medium text-blue-600 dark:text-blue-400">
-            +{changes.length - 4} more activities in feed
-          </div>
-        )}
       </div>
     </div>
   );

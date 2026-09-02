@@ -2,11 +2,13 @@
 
 import React from 'react';
 import { useHub } from '@/context/HubContext';
+import { useI18n } from '@/lib/i18n';
 import { formatRelativeTime } from '@/lib/dateUtils';
 import { Activity as ActivityIcon, ArrowRight } from 'lucide-react';
 
 export function RecentActivitySection() {
   const { hubState, setActiveTab, setSelectedTask, setSelectedProject } = useHub();
+  const { t } = useI18n();
 
   if (!hubState) return null;
 
@@ -18,14 +20,14 @@ export function RecentActivitySection() {
         <div className="flex items-center gap-2">
           <ActivityIcon className="w-4 h-4 text-blue-600 dark:text-blue-400" />
           <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-900 dark:text-zinc-100">
-            Recent Activity
+            {t.home.recentActivity}
           </h3>
         </div>
         <button
           onClick={() => setActiveTab('feed')}
           className="text-[11px] font-medium text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-0.5"
         >
-          <span>Full feed</span>
+          <span>{t.home.fullFeed}</span>
           <ArrowRight className="w-3 h-3" />
         </button>
       </div>

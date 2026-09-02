@@ -2,19 +2,14 @@
 
 import React, { useState } from 'react';
 import { useHub } from '@/context/HubContext';
-import { Project, ProjectStatus } from '@/types';
+import { useI18n } from '@/lib/i18n';
+import { ProjectStatus } from '@/types';
 import { formatRelativeTime } from '@/lib/dateUtils';
-import {
-  FolderKanban,
-  Plus,
-  CheckCircle2,
-  ListTodo,
-  Clock,
-  ArrowRight,
-} from 'lucide-react';
+import { Plus, ArrowRight } from 'lucide-react';
 
 export function ProjectsScreen() {
-  const { hubState, setSelectedProject, openQuickAction } = useHub();
+  const { hubState, setSelectedProject, createProject } = useHub();
+  const { t } = useI18n();
   const [statusFilter, setStatusFilter] = useState<ProjectStatus | 'all'>('active');
 
   if (!hubState) return null;
@@ -30,26 +25,28 @@ export function ProjectsScreen() {
       <div className="flex items-center justify-between gap-3 pt-1">
         <div>
           <h1 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
-            Projects
+            {t.projects.title}
           </h1>
           <p className="text-xs text-zinc-500 dark:text-zinc-400">
-            Containers for shared goals and systems
+            {t.projects.subtitle}
           </p>
         </div>
 
         <button
           onClick={() => {
-            const name = prompt('Enter Project Name:');
+            const name = prompt('Project Name / Tên dự án:');
             if (name && name.trim()) {
-              const desc = prompt('Short description (optional):') || '';
-              // Create project via context
-              // (will trigger quick action or direct creation)
+              const desc = prompt('Description / Mô tả (optional):') || '';
+              createProject({
+                name: name.trim(),
+                description: desc.trim() || undefined,
+              });
             }
           }}
           className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 active:scale-95 rounded-xl shadow-xs transition"
         >
           <Plus className="w-4 h-4" />
-          <span>New Project</span>
+          <span>{t.projects.newProject}</span>
         </button>
       </div>
 
@@ -65,7 +62,7 @@ export function ProjectsScreen() {
                 : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
             }`}
           >
-            {tab}
+            {tab === 'all' ? t.common.all : tab}
           </button>
         ))}
       </div>
@@ -121,10 +118,10 @@ export function ProjectsScreen() {
                 <div className="flex items-center justify-between text-[11px] text-zinc-500 dark:text-zinc-400">
                   <div className="flex items-center gap-2">
                     <span className="font-semibold text-zinc-800 dark:text-zinc-200">
-                      {activeTasks} active
+                      {activeTasks} {t.projects.activeTasks}
                     </span>
                     <span>•</span>
-                    <span>{completedTasks} done</span>
+                    <span>{completedTasks} {t.projects.completedTasks}</span>
                   </div>
                   <span className="font-bold text-zinc-700 dark:text-zinc-300">
                     {progressPercent}%
@@ -143,8 +140,8 @@ export function ProjectsScreen() {
                 </div>
 
                 <div className="flex items-center justify-between text-[10px] text-zinc-400 pt-1">
-                  <span>Updated {formatRelativeTime(project.updated_at)}</span>
-                  <span>{totalTasks} total tasks</span>
+                  <span>{t.projects.updated} {formatRelativeTime(project.updated_at)}</span>
+                  <span>{totalTasks} {t.projects.totalTasks}</span>
                 </div>
               </div>
             </div>

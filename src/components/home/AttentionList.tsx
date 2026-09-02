@@ -2,17 +2,17 @@
 
 import React from 'react';
 import { useHub } from '@/context/HubContext';
+import { useI18n } from '@/lib/i18n';
 import { formatDueDate } from '@/lib/dateUtils';
-import { AlertCircle, Clock, CheckCircle2, Circle, ArrowRight } from 'lucide-react';
-import { Task } from '@/types';
+import { Circle, ArrowRight, Clock } from 'lucide-react';
 
 export function AttentionList() {
   const { hubState, setSelectedTask, toggleTaskStatus, setActiveTab } = useHub();
+  const { t } = useI18n();
 
   if (!hubState) return null;
 
   const { actionRequired, waiting } = hubState.attention;
-  const partnerName = hubState.partnerUser.name;
 
   return (
     <div className="space-y-4">
@@ -22,7 +22,7 @@ export function AttentionList() {
           <div className="flex items-center gap-2">
             <div className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse" />
             <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
-              <span>Needs Your Action</span>
+              <span>{t.home.needsYourAction}</span>
               <span className="px-1.5 py-0.2 rounded-full bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 text-[10px] font-bold">
                 {actionRequired.length}
               </span>
@@ -32,14 +32,14 @@ export function AttentionList() {
             onClick={() => setActiveTab('work')}
             className="text-[11px] font-medium text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-0.5"
           >
-            <span>View all work</span>
+            <span>{t.common.viewAllWork}</span>
             <ArrowRight className="w-3 h-3" />
           </button>
         </div>
 
         {actionRequired.length === 0 ? (
           <div className="py-6 text-center text-xs text-zinc-500 dark:text-zinc-400">
-            🎉 You have no urgent pending tasks. Great job!
+            {t.home.noActionTasks}
           </div>
         ) : (
           <div className="space-y-2">
@@ -60,7 +60,7 @@ export function AttentionList() {
                   }`}
                   onClick={() => setSelectedTask(task)}
                 >
-                  {/* Quick Toggle Done Button */}
+                  {/* Quick Toggle Done */}
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
@@ -113,10 +113,9 @@ export function AttentionList() {
                     </div>
                   </div>
 
-                  {/* Priority indicator */}
                   {isUrgent && (
                     <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500 text-white shrink-0">
-                      Urgent
+                      {t.statusLabels.urgent}
                     </span>
                   )}
                 </div>
@@ -126,14 +125,14 @@ export function AttentionList() {
         )}
       </div>
 
-      {/* 2. Waiting for Partner */}
+      {/* 2. Waiting on Team */}
       {waiting.length > 0 && (
         <div className="rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-4 shadow-xs">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <div className="w-2.5 h-2.5 rounded-full bg-amber-500" />
               <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
-                <span>Waiting on {partnerName}</span>
+                <span>{t.home.waitingOnTeam}</span>
                 <span className="px-1.5 py-0.2 rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 text-[10px] font-bold">
                   {waiting.length}
                 </span>

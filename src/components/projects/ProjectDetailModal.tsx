@@ -2,17 +2,12 @@
 
 import React, { useState } from 'react';
 import { useHub } from '@/context/HubContext';
+import { useI18n } from '@/lib/i18n';
 import { Project, ProjectStatus } from '@/types';
 import { TaskCard } from '../work/TaskCard';
 import { formatRelativeTime } from '@/lib/dateUtils';
 import {
   X,
-  FolderKanban,
-  CheckCircle2,
-  Lightbulb,
-  BookOpen,
-  Scale,
-  Activity as ActivityIcon,
   Plus,
 } from 'lucide-react';
 
@@ -26,11 +21,9 @@ export function ProjectDetailModal() {
     updateProject,
     openQuickAction,
   } = useHub();
+  const { t } = useI18n();
 
   const [activeTab, setActiveTab] = useState<ProjectTab>('tasks');
-  const [name, setName] = useState(selectedProject?.name || '');
-  const [description, setDescription] = useState(selectedProject?.description || '');
-  const [status, setStatus] = useState<ProjectStatus>(selectedProject?.status || 'active');
 
   if (!selectedProject || !hubState) return null;
 
@@ -40,16 +33,12 @@ export function ProjectDetailModal() {
   const projectDecisions = hubState.decisions.filter((d) => d.project_id === selectedProject.id);
   const projectActivities = hubState.recentActivities.filter((a) => a.project_id === selectedProject.id);
 
-  const handleUpdate = (updates: Partial<Project>) => {
-    updateProject(selectedProject.id, updates);
-  };
-
   const tabs: { id: ProjectTab; label: string; count?: number }[] = [
-    { id: 'tasks', label: 'Tasks', count: projectTasks.length },
-    { id: 'ideas', label: 'Ideas', count: projectIdeas.length },
-    { id: 'knowledge', label: 'Knowledge', count: projectKnowledge.length },
-    { id: 'decisions', label: 'Decisions', count: projectDecisions.length },
-    { id: 'activity', label: 'Activity', count: projectActivities.length },
+    { id: 'tasks', label: t.projects.tabTasks, count: projectTasks.length },
+    { id: 'ideas', label: t.projects.tabIdeas, count: projectIdeas.length },
+    { id: 'knowledge', label: t.projects.tabKnowledge, count: projectKnowledge.length },
+    { id: 'decisions', label: t.projects.tabDecisions, count: projectDecisions.length },
+    { id: 'activity', label: t.projects.tabActivity, count: projectActivities.length },
   ];
 
   return (
@@ -111,20 +100,20 @@ export function ProjectDetailModal() {
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold text-zinc-500">
-                  {projectTasks.length} tasks in this project
+                  {projectTasks.length} {t.projects.totalTasks}
                 </span>
                 <button
                   onClick={() => openQuickAction('task')}
                   className="flex items-center gap-1 text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline"
                 >
                   <Plus className="w-3.5 h-3.5" />
-                  <span>Add Task</span>
+                  <span>{t.work.newTask}</span>
                 </button>
               </div>
 
               {projectTasks.length === 0 ? (
                 <div className="py-8 text-center text-xs text-zinc-400">
-                  No tasks assigned to this project yet.
+                  {t.projects.noTasks}
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -141,20 +130,20 @@ export function ProjectDetailModal() {
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold text-zinc-500">
-                  Project Ideas
+                  {t.ideas.title}
                 </span>
                 <button
                   onClick={() => openQuickAction('idea')}
                   className="flex items-center gap-1 text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline"
                 >
                   <Plus className="w-3.5 h-3.5" />
-                  <span>Add Idea</span>
+                  <span>{t.ideas.newIdea}</span>
                 </button>
               </div>
 
               {projectIdeas.length === 0 ? (
                 <div className="py-8 text-center text-xs text-zinc-400">
-                  No ideas logged for this project yet.
+                  {t.projects.noIdeas}
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -188,20 +177,20 @@ export function ProjectDetailModal() {
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold text-zinc-500">
-                  Learning & Notes
+                  {t.knowledge.title}
                 </span>
                 <button
                   onClick={() => openQuickAction('knowledge')}
                   className="flex items-center gap-1 text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline"
                 >
                   <Plus className="w-3.5 h-3.5" />
-                  <span>Add Note</span>
+                  <span>{t.knowledge.newTopic}</span>
                 </button>
               </div>
 
               {projectKnowledge.length === 0 ? (
                 <div className="py-8 text-center text-xs text-zinc-400">
-                  No knowledge items linked to this project.
+                  {t.projects.noKnowledge}
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -235,20 +224,20 @@ export function ProjectDetailModal() {
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold text-zinc-500">
-                  Project Decisions
+                  {t.decisions.title}
                 </span>
                 <button
                   onClick={() => openQuickAction('decision')}
                   className="flex items-center gap-1 text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline"
                 >
                   <Plus className="w-3.5 h-3.5" />
-                  <span>Record Decision</span>
+                  <span>{t.decisions.newDecision}</span>
                 </button>
               </div>
 
               {projectDecisions.length === 0 ? (
                 <div className="py-8 text-center text-xs text-zinc-400">
-                  No decisions recorded yet.
+                  {t.projects.noDecisions}
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -280,7 +269,7 @@ export function ProjectDetailModal() {
             <div className="space-y-2">
               {projectActivities.length === 0 ? (
                 <div className="py-8 text-center text-xs text-zinc-400">
-                  No activity history for this project yet.
+                  {t.projects.noActivity}
                 </div>
               ) : (
                 projectActivities.map((a) => (

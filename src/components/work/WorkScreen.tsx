@@ -1,26 +1,24 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { useHub } from '@/context/HubContext';
+import { useI18n } from '@/lib/i18n';
 import { TaskCard } from './TaskCard';
-import { TaskStatus, TaskPriority } from '@/types';
+import { TaskStatus } from '@/types';
 import {
   Plus,
-  Filter,
   Search,
   CheckCircle2,
   Inbox,
   ListTodo,
   PlayCircle,
-  Clock,
-  ArrowRightLeft,
-  UserCheck,
 } from 'lucide-react';
 
 type WorkViewTab = 'my_work' | 'assigned_by_me' | 'waiting' | 'all';
 
 export function WorkScreen() {
   const { hubState, openQuickAction } = useHub();
+  const { t } = useI18n();
   const [viewTab, setViewTab] = useState<WorkViewTab>('my_work');
   const [selectedProjectId, setSelectedProjectId] = useState<string>('all');
   const [selectedPriority, setSelectedPriority] = useState<string>('all');
@@ -29,7 +27,6 @@ export function WorkScreen() {
   if (!hubState) return null;
 
   const currentUserId = hubState.currentUser.id;
-  const partnerName = hubState.partnerUser.name;
 
   // Filter tasks based on view tab & filters
   const filteredTasks = hubState.tasks.filter((task) => {
@@ -65,10 +62,10 @@ export function WorkScreen() {
   });
 
   const taskGroups: { status: TaskStatus; label: string; icon: React.ComponentType<{ className?: string }>; color: string }[] = [
-    { status: 'in_progress', label: 'In Progress', icon: PlayCircle, color: 'text-amber-500' },
-    { status: 'todo', label: 'Todo', icon: ListTodo, color: 'text-blue-500' },
-    { status: 'inbox', label: 'Inbox', icon: Inbox, color: 'text-zinc-500' },
-    { status: 'done', label: 'Done', icon: CheckCircle2, color: 'text-emerald-500' },
+    { status: 'in_progress', label: t.statusLabels.in_progress, icon: PlayCircle, color: 'text-amber-500' },
+    { status: 'todo', label: t.statusLabels.todo, icon: ListTodo, color: 'text-blue-500' },
+    { status: 'inbox', label: t.statusLabels.inbox, icon: Inbox, color: 'text-zinc-500' },
+    { status: 'done', label: t.statusLabels.done, icon: CheckCircle2, color: 'text-emerald-500' },
   ];
 
   return (
@@ -77,10 +74,10 @@ export function WorkScreen() {
       <div className="flex items-center justify-between gap-3 pt-1">
         <div>
           <h1 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
-            Work & Tasks
+            {t.work.title}
           </h1>
           <p className="text-xs text-zinc-500 dark:text-zinc-400">
-            Action items and deliverables
+            {t.work.subtitle}
           </p>
         </div>
 
@@ -89,7 +86,7 @@ export function WorkScreen() {
           className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 active:scale-95 rounded-xl shadow-xs transition"
         >
           <Plus className="w-4 h-4" />
-          <span>New Task</span>
+          <span>{t.work.newTask}</span>
         </button>
       </div>
 
@@ -103,7 +100,7 @@ export function WorkScreen() {
               : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
           }`}
         >
-          📌 My Work
+          {t.work.myWork}
         </button>
         <button
           onClick={() => setViewTab('assigned_by_me')}
@@ -113,7 +110,7 @@ export function WorkScreen() {
               : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
           }`}
         >
-          📤 Assigned
+          {t.work.assignedByMe}
         </button>
         <button
           onClick={() => setViewTab('waiting')}
@@ -123,7 +120,7 @@ export function WorkScreen() {
               : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
           }`}
         >
-          ⏳ Waiting
+          {t.work.waiting}
         </button>
         <button
           onClick={() => setViewTab('all')}
@@ -133,7 +130,7 @@ export function WorkScreen() {
               : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
           }`}
         >
-          📑 All
+          {t.work.allTasks}
         </button>
       </div>
 
@@ -146,7 +143,7 @@ export function WorkScreen() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search tasks..."
+            placeholder={t.common.search}
             className="w-full pl-8 pr-3 py-1.5 text-xs rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
@@ -157,7 +154,7 @@ export function WorkScreen() {
           onChange={(e) => setSelectedProjectId(e.target.value)}
           className="px-2.5 py-1.5 text-xs rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
-          <option value="all">All Projects</option>
+          <option value="all">{t.work.allProjects}</option>
           {hubState.projects.map((p) => (
             <option key={p.id} value={p.id}>
               {p.name}
@@ -171,11 +168,11 @@ export function WorkScreen() {
           onChange={(e) => setSelectedPriority(e.target.value)}
           className="px-2.5 py-1.5 text-xs rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
-          <option value="all">All Priorities</option>
-          <option value="urgent">🔴 Urgent</option>
-          <option value="high">🟠 High</option>
-          <option value="medium">🟡 Medium</option>
-          <option value="low">⚪ Low</option>
+          <option value="all">{t.work.allPriorities}</option>
+          <option value="urgent">{t.statusLabels.urgent}</option>
+          <option value="high">{t.statusLabels.high}</option>
+          <option value="medium">{t.statusLabels.medium}</option>
+          <option value="low">{t.statusLabels.low}</option>
         </select>
       </div>
 
@@ -186,7 +183,7 @@ export function WorkScreen() {
           const Icon = group.icon;
 
           if (groupTasks.length === 0 && (viewTab === 'waiting' || searchQuery)) {
-            return null; // Skip empty groups during searches
+            return null;
           }
 
           return (
@@ -205,7 +202,7 @@ export function WorkScreen() {
 
               {groupTasks.length === 0 ? (
                 <div className="py-3 px-4 rounded-xl border border-dashed border-zinc-200 dark:border-zinc-800 text-center text-xs text-zinc-400">
-                  No tasks in {group.label.toLowerCase()}
+                  {group.label}
                 </div>
               ) : (
                 <div className="space-y-2">

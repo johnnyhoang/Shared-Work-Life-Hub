@@ -2,12 +2,14 @@
 
 import React, { useState } from 'react';
 import { useHub } from '@/context/HubContext';
-import { Knowledge, KnowledgeStatus } from '@/types';
+import { useI18n } from '@/lib/i18n';
+import { KnowledgeStatus } from '@/types';
 import { formatRelativeTime } from '@/lib/dateUtils';
-import { BookOpen, Plus, CheckCircle2, BookMarked, Target, Sparkles } from 'lucide-react';
+import { Plus, CheckCircle2, BookMarked, Target } from 'lucide-react';
 
 export function KnowledgeScreen() {
   const { hubState, createKnowledge, updateKnowledge } = useHub();
+  const { t } = useI18n();
   const [newTopic, setNewTopic] = useState('');
   const [newNotes, setNewNotes] = useState('');
   const [selectedProjectId, setSelectedProjectId] = useState<string>('');
@@ -32,9 +34,9 @@ export function KnowledgeScreen() {
   };
 
   const statusConfigs: Record<KnowledgeStatus, { label: string; icon: React.ComponentType<{ className?: string }>; color: string }> = {
-    learning: { label: 'Currently Learning', icon: BookMarked, color: 'text-blue-500 bg-blue-50 dark:bg-blue-950/30' },
-    to_learn: { label: 'To Learn', icon: Target, color: 'text-amber-500 bg-amber-50 dark:bg-amber-950/30' },
-    mastered: { label: 'Mastered', icon: CheckCircle2, color: 'text-emerald-500 bg-emerald-50 dark:bg-emerald-950/30' },
+    learning: { label: t.knowledge.learning, icon: BookMarked, color: 'text-blue-500 bg-blue-50 dark:bg-blue-950/30' },
+    to_learn: { label: t.knowledge.toLearn, icon: Target, color: 'text-amber-500 bg-amber-50 dark:bg-amber-950/30' },
+    mastered: { label: t.knowledge.mastered, icon: CheckCircle2, color: 'text-emerald-500 bg-emerald-50 dark:bg-emerald-950/30' },
   };
 
   return (
@@ -43,10 +45,10 @@ export function KnowledgeScreen() {
       <div className="flex items-center justify-between gap-3 pt-1">
         <div>
           <h1 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
-            Knowledge & Learning
+            {t.knowledge.title}
           </h1>
           <p className="text-xs text-zinc-500 dark:text-zinc-400">
-            Tech topics, architectural notes, and study paths
+            {t.knowledge.subtitle}
           </p>
         </div>
 
@@ -55,7 +57,7 @@ export function KnowledgeScreen() {
           className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 active:scale-95 rounded-xl shadow-xs transition"
         >
           <Plus className="w-4 h-4" />
-          <span>New Topic</span>
+          <span>{t.knowledge.newTopic}</span>
         </button>
       </div>
 
@@ -67,7 +69,7 @@ export function KnowledgeScreen() {
         >
           <input
             type="text"
-            placeholder="Topic title (e.g. AWS Transit Gateway)..."
+            placeholder={t.knowledge.title}
             value={newTopic}
             onChange={(e) => setNewTopic(e.target.value)}
             autoFocus
@@ -75,7 +77,7 @@ export function KnowledgeScreen() {
           />
           <textarea
             rows={3}
-            placeholder="Key concepts, subtopics, or checklist notes..."
+            placeholder={t.work.taskDesc}
             value={newNotes}
             onChange={(e) => setNewNotes(e.target.value)}
             className="w-full px-3 py-1.5 text-xs rounded-xl bg-white dark:bg-zinc-900 border border-emerald-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"
@@ -86,7 +88,7 @@ export function KnowledgeScreen() {
               onChange={(e) => setSelectedProjectId(e.target.value)}
               className="px-2 py-1 text-xs rounded-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300"
             >
-              <option value="">(No Project Link)</option>
+              <option value="">{t.common.noProject}</option>
               {hubState.projects.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.name}
@@ -100,14 +102,14 @@ export function KnowledgeScreen() {
                 onClick={() => setIsAdding(false)}
                 className="px-2.5 py-1 text-xs text-zinc-500 hover:text-zinc-700"
               >
-                Cancel
+                {t.common.cancel}
               </button>
               <button
                 type="submit"
                 disabled={!newTopic.trim()}
                 className="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow-xs"
               >
-                Save Topic
+                {t.knowledge.saveTopic}
               </button>
             </div>
           </div>
@@ -137,7 +139,7 @@ export function KnowledgeScreen() {
 
               {list.length === 0 ? (
                 <div className="py-2.5 px-4 rounded-xl border border-dashed border-zinc-200 dark:border-zinc-800 text-center text-xs text-zinc-400">
-                  No items in {config.label.toLowerCase()}
+                  {config.label}
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -158,7 +160,7 @@ export function KnowledgeScreen() {
                               onClick={() => updateKnowledge(item.id, { status: 'learning' })}
                               className="px-2 py-0.5 text-[10px] font-medium text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/40 rounded transition"
                             >
-                              Learning
+                              {t.knowledge.learning}
                             </button>
                           )}
                           {item.status !== 'mastered' && (
@@ -166,7 +168,7 @@ export function KnowledgeScreen() {
                               onClick={() => updateKnowledge(item.id, { status: 'mastered' })}
                               className="px-2 py-0.5 text-[10px] font-medium text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 rounded transition"
                             >
-                              Mastered
+                              {t.knowledge.mastered}
                             </button>
                           )}
                         </div>
@@ -185,7 +187,7 @@ export function KnowledgeScreen() {
                               {item.project_name}
                             </span>
                           )}
-                          <span>Added by {item.user_name}</span>
+                          <span>{item.user_name}</span>
                         </div>
                         <span>{formatRelativeTime(item.updated_at)}</span>
                       </div>

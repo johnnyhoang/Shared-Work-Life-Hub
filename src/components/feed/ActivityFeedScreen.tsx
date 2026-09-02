@@ -2,12 +2,14 @@
 
 import React, { useState } from 'react';
 import { useHub } from '@/context/HubContext';
+import { useI18n } from '@/lib/i18n';
 import { formatRelativeTime } from '@/lib/dateUtils';
-import { Activity as ActivityIcon, Filter, User, FolderKanban, CheckSquare, Lightbulb, BookOpen, Scale, MessageSquare } from 'lucide-react';
+import { Activity as ActivityIcon, FolderKanban, CheckSquare, Lightbulb, BookOpen, Scale, MessageSquare } from 'lucide-react';
 import { EntityType } from '@/types';
 
 export function ActivityFeedScreen() {
   const { hubState, setSelectedTask, setSelectedProject } = useHub();
+  const { t } = useI18n();
 
   const [actorFilter, setActorFilter] = useState<'all' | 'mine' | 'partner'>('all');
   const [entityFilter, setEntityFilter] = useState<'all' | EntityType>('all');
@@ -16,18 +18,14 @@ export function ActivityFeedScreen() {
   if (!hubState) return null;
 
   const currentUserId = hubState.currentUser.id;
-  const partnerUser = hubState.partnerUser;
   const now = Date.now();
 
   const filteredActivities = hubState.recentActivities.filter((act) => {
-    // 1. Actor filter
     if (actorFilter === 'mine' && act.actor_id !== currentUserId) return false;
     if (actorFilter === 'partner' && act.actor_id === currentUserId) return false;
 
-    // 2. Entity filter
     if (entityFilter !== 'all' && act.entity_type !== entityFilter) return false;
 
-    // 3. Time filter
     if (timeFilter === 'since_visit') {
       const visitTime = new Date(hubState.currentUser.last_visited_at).getTime();
       const actTime = new Date(act.created_at).getTime();
@@ -58,10 +56,10 @@ export function ActivityFeedScreen() {
       <div className="flex items-center justify-between gap-3 pt-1">
         <div>
           <h1 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
-            Activity Feed
+            {t.feed.title}
           </h1>
           <p className="text-xs text-zinc-500 dark:text-zinc-400">
-            Full chronological log of shared updates
+            {t.feed.subtitle}
           </p>
         </div>
       </div>
@@ -70,7 +68,7 @@ export function ActivityFeedScreen() {
       <div className="space-y-2 p-3 rounded-2xl bg-zinc-50 dark:bg-zinc-900/60 border border-zinc-200/80 dark:border-zinc-800">
         {/* Actor Filter */}
         <div className="flex items-center gap-1.5 flex-wrap">
-          <span className="text-[11px] font-semibold text-zinc-400 w-12">Who:</span>
+          <span className="text-[11px] font-semibold text-zinc-400 w-12">{t.common.who}</span>
           {(['all', 'mine', 'partner'] as const).map((tab) => (
             <button
               key={tab}
@@ -81,19 +79,19 @@ export function ActivityFeedScreen() {
                   : 'bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700'
               }`}
             >
-              {tab === 'all' ? 'Everyone' : tab === 'mine' ? 'My Changes' : `${partnerUser.name}'s Changes`}
+              {tab === 'all' ? t.feed.everyone : tab === 'mine' ? t.feed.myChanges : t.feed.partnerChanges}
             </button>
           ))}
         </div>
 
         {/* Time Filter */}
         <div className="flex items-center gap-1.5 flex-wrap">
-          <span className="text-[11px] font-semibold text-zinc-400 w-12">When:</span>
+          <span className="text-[11px] font-semibold text-zinc-400 w-12">{t.common.when}</span>
           {[
-            { id: 'all', label: 'All Time' },
-            { id: 'since_visit', label: 'Since Last Visit' },
-            { id: '24h', label: 'Last 24h' },
-            { id: '7d', label: 'Last 7 Days' },
+            { id: 'all', label: t.feed.allTime },
+            { id: 'since_visit', label: t.feed.sinceVisit },
+            { id: '24h', label: t.feed.last24h },
+            { id: '7d', label: t.feed.last7d },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -111,7 +109,7 @@ export function ActivityFeedScreen() {
 
         {/* Entity Type Filter */}
         <div className="flex items-center gap-1.5 flex-wrap pt-1 border-t border-zinc-200/60 dark:border-zinc-800">
-          <span className="text-[11px] font-semibold text-zinc-400 w-12">Type:</span>
+          <span className="text-[11px] font-semibold text-zinc-400 w-12">{t.common.type}</span>
           {(['all', 'task', 'project', 'idea', 'knowledge', 'decision'] as const).map((type) => (
             <button
               key={type}
@@ -122,7 +120,7 @@ export function ActivityFeedScreen() {
                   : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200'
               }`}
             >
-              {type}
+              {type === 'all' ? t.common.all : type}
             </button>
           ))}
         </div>
@@ -132,7 +130,7 @@ export function ActivityFeedScreen() {
       <div className="space-y-2">
         {filteredActivities.length === 0 ? (
           <div className="py-12 text-center text-xs text-zinc-400">
-            No activities matching the selected filters.
+            {t.feed.noActivities}
           </div>
         ) : (
           filteredActivities.map((act) => {

@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useHub } from '@/context/HubContext';
+import { useI18n } from '@/lib/i18n';
 import {
   Home,
   CheckSquare,
@@ -15,6 +16,7 @@ import {
 
 export function BottomNav() {
   const { activeTab, setActiveTab, hubState } = useHub();
+  const { t } = useI18n();
 
   const attentionCount = hubState?.attention?.actionRequired?.length || 0;
   const sinceCount = hubState?.sinceLastVisit?.total_changes || 0;
@@ -22,31 +24,31 @@ export function BottomNav() {
   const navItems = [
     {
       id: 'home' as const,
-      label: 'Home',
+      label: t.common.home,
       icon: Home,
       badge: sinceCount > 0 ? sinceCount : undefined,
       badgeColor: 'bg-blue-600',
     },
     {
       id: 'work' as const,
-      label: 'Work',
+      label: t.common.work,
       icon: CheckSquare,
       badge: attentionCount > 0 ? attentionCount : undefined,
       badgeColor: 'bg-rose-500',
     },
     {
       id: 'projects' as const,
-      label: 'Projects',
+      label: t.common.projects,
       icon: FolderKanban,
     },
     {
       id: 'feed' as const,
-      label: 'Feed',
+      label: t.common.feed,
       icon: ActivityIcon,
     },
     {
       id: 'more' as const,
-      label: 'More',
+      label: t.common.more,
       icon: MoreHorizontal,
     },
   ];
@@ -96,9 +98,9 @@ export function BottomNav() {
               <button
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
-                className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm font-medium transition-all ${
                   isActive
-                    ? 'bg-blue-600 text-white shadow-sm'
+                    ? 'bg-blue-600 text-white shadow-sm font-bold'
                     : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200/60 dark:hover:bg-zinc-800/60'
                 }`}
               >
@@ -122,8 +124,8 @@ export function BottomNav() {
 
         {/* Quick Links in sidebar for Ideas, Knowledge, Decisions */}
         <div className="mt-8 pt-4 border-t border-zinc-200 dark:border-zinc-800">
-          <div className="px-3 text-[11px] font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider mb-2">
-            Quick Modules
+          <div className="px-3 text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider mb-2">
+            {t.common.more}
           </div>
           <div className="space-y-1">
             <button
@@ -131,21 +133,21 @@ export function BottomNav() {
               className="w-full flex items-center gap-3 px-3 py-1.5 rounded-lg text-xs text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200/60 dark:hover:bg-zinc-800/60"
             >
               <Lightbulb className="w-3.5 h-3.5 text-amber-500" />
-              <span>Ideas Pipeline</span>
+              <span>{t.ideas.title}</span>
             </button>
             <button
               onClick={() => setActiveTab('more')}
               className="w-full flex items-center gap-3 px-3 py-1.5 rounded-lg text-xs text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200/60 dark:hover:bg-zinc-800/60"
             >
               <BookOpen className="w-3.5 h-3.5 text-emerald-500" />
-              <span>Knowledge Hub</span>
+              <span>{t.knowledge.title}</span>
             </button>
             <button
               onClick={() => setActiveTab('more')}
               className="w-full flex items-center gap-3 px-3 py-1.5 rounded-lg text-xs text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200/60 dark:hover:bg-zinc-800/60"
             >
               <Scale className="w-3.5 h-3.5 text-purple-500" />
-              <span>Decisions Log</span>
+              <span>{t.decisions.title}</span>
             </button>
           </div>
         </div>
