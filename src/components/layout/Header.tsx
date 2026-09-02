@@ -60,17 +60,17 @@ export function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-30 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md border-b border-zinc-200/80 dark:border-zinc-800 transition-colors">
-        <div className="max-w-4xl mx-auto px-4 py-2 flex items-center justify-between gap-3">
+      <header className="sticky top-0 z-30 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border-b border-zinc-200/80 dark:border-zinc-800 transition-colors">
+        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
           {/* Left: Brand & Clocks */}
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1.5 font-black text-sm tracking-tight text-zinc-900 dark:text-zinc-50">
-              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+            <div className="flex items-center gap-2 font-black text-base sm:text-lg tracking-tight text-zinc-900 dark:text-zinc-50">
+              <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse" />
               <span>Hub</span>
             </div>
 
-            {/* Compact Timezone */}
-            <div className="flex items-center gap-1.5 text-[11px] font-semibold text-zinc-600 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800/80 px-2 py-0.5 rounded-lg">
+            {/* Compact Timezone with readable font */}
+            <div className="flex items-center gap-2 text-xs sm:text-sm font-bold text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800/90 px-3 py-1 rounded-xl">
               <span>{currentUser.flag} {userTime.time}</span>
               {partnerUser.id !== currentUser.id && (
                 <>
@@ -82,37 +82,37 @@ export function Header() {
           </div>
 
           {/* Right: Language + Add Button + Profile */}
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-2">
             {/* 1-Tap Language */}
             <button
               onClick={() => setLanguage(language === 'vi' ? 'en' : 'vi')}
-              className="px-2 py-1 text-[11px] font-bold rounded-lg text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition flex items-center gap-1"
+              className="px-2.5 py-1.5 text-xs sm:text-sm font-bold rounded-xl text-zinc-700 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition flex items-center gap-1.5"
               title="Toggle Language"
             >
-              <Globe className="w-3 h-3 text-blue-500" />
+              <Globe className="w-4 h-4 text-blue-500" />
               <span>{language === 'vi' ? 'VI' : 'EN'}</span>
             </button>
 
-            {/* Quick Add FAB */}
+            {/* Quick Add Button */}
             <button
               onClick={() => openQuickAction('task')}
-              className="flex items-center gap-1 px-2.5 py-1 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 active:scale-95 rounded-lg shadow-xs transition"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 active:scale-95 rounded-xl shadow-xs transition"
             >
-              <Plus className="w-3.5 h-3.5" />
+              <Plus className="w-4 h-4" />
               <span className="hidden xs:inline">{t.common.quickAdd}</span>
             </button>
 
-            {/* User Dropdown / Login */}
+            {/* User Profile */}
             {authUser ? (
               <div className="relative">
                 <button
                   onClick={() => setShowUserMenu(!showUserMenu)}
-                  className="flex items-center gap-1.5 pl-1.5 pr-2 py-0.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition text-xs font-semibold text-zinc-800 dark:text-zinc-200"
+                  className="flex items-center gap-2 pl-2 pr-3 py-1 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800 transition text-xs sm:text-sm font-bold text-zinc-800 dark:text-zinc-200"
                 >
-                  <span className="text-sm">{currentUser.avatar || '👤'}</span>
-                  <span className="max-w-[70px] truncate">{currentUser.name}</span>
-                  {isLead && <ShieldCheck className="w-3 h-3 text-blue-600" />}
-                  <ChevronDown className="w-3 h-3 text-zinc-400" />
+                  <span className="text-base">{currentUser.avatar || '👤'}</span>
+                  <span className="max-w-[90px] truncate">{currentUser.name}</span>
+                  {isLead && <ShieldCheck className="w-4 h-4 text-blue-600" />}
+                  <ChevronDown className="w-3.5 h-3.5 text-zinc-400" />
                 </button>
 
                 {showUserMenu && (
@@ -121,12 +121,12 @@ export function Header() {
                       className="fixed inset-0 z-40"
                       onClick={() => setShowUserMenu(false)}
                     />
-                    <div className="absolute right-0 mt-1.5 w-56 bg-white dark:bg-zinc-900 rounded-2xl shadow-xl border border-zinc-200 dark:border-zinc-800 py-1.5 z-50 text-xs">
-                      <div className="px-3 py-1.5 border-b border-zinc-100 dark:border-zinc-800">
-                        <div className="font-bold text-zinc-900 dark:text-zinc-100 truncate">
+                    <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-zinc-200 dark:border-zinc-800 py-2 z-50 text-xs sm:text-sm">
+                      <div className="px-4 py-2 border-b border-zinc-100 dark:border-zinc-800">
+                        <div className="font-bold text-zinc-900 dark:text-zinc-100 truncate text-sm">
                           {currentUser.name}
                         </div>
-                        <div className="text-[10px] text-zinc-400 truncate">
+                        <div className="text-xs text-zinc-400 truncate">
                           {currentUser.email}
                         </div>
                       </div>
@@ -137,9 +137,9 @@ export function Header() {
                             setShowUserMenu(false);
                             setIsTeamModalOpen(true);
                           }}
-                          className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-left hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-medium"
+                          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-200 font-semibold"
                         >
-                          <Users className="w-3.5 h-3.5 text-blue-600" />
+                          <Users className="w-4 h-4 text-blue-600" />
                           <span>{t.common.teamManagement}</span>
                         </button>
                       </div>
@@ -147,9 +147,9 @@ export function Header() {
                       <div className="p-1">
                         <button
                           onClick={handleLogout}
-                          className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-left text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 font-bold"
+                          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 font-bold"
                         >
-                          <LogOut className="w-3.5 h-3.5" />
+                          <LogOut className="w-4 h-4" />
                           <span>{t.common.logout}</span>
                         </button>
                       </div>
@@ -160,9 +160,9 @@ export function Header() {
             ) : (
               <a
                 href="/login"
-                className="flex items-center gap-1 px-2.5 py-1 text-xs font-bold text-blue-600 bg-blue-50 dark:bg-blue-950/40 rounded-lg hover:bg-blue-100 transition"
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm font-bold text-blue-600 bg-blue-50 dark:bg-blue-950/40 rounded-xl hover:bg-blue-100 transition"
               >
-                <LogIn className="w-3.5 h-3.5" />
+                <LogIn className="w-4 h-4" />
                 <span>{t.common.login}</span>
               </a>
             )}

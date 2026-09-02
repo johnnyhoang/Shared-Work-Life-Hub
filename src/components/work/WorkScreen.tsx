@@ -3,12 +3,10 @@
 import React, { useState } from 'react';
 import { useHub } from '@/context/HubContext';
 import { useI18n } from '@/lib/i18n';
-import { Task } from '@/types';
 import { formatDueDate } from '@/lib/dateUtils';
 import {
   CheckCircle2,
   Circle,
-  Plus,
   Search,
   Clock,
   UserCheck,
@@ -73,14 +71,14 @@ export function WorkScreen() {
   });
 
   return (
-    <div className="space-y-4 pb-20 md:pb-8 max-w-2xl mx-auto">
+    <div className="space-y-5 pb-20 md:pb-8 max-w-2xl mx-auto">
       {/* Header & Title */}
       <div className="flex items-center justify-between gap-3 pt-2">
         <div>
-          <h1 className="text-xl font-black tracking-tight text-zinc-900 dark:text-zinc-50">
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-zinc-900 dark:text-zinc-50">
             {t.work.title}
           </h1>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400">
+          <p className="text-sm sm:text-base text-zinc-500 dark:text-zinc-400 mt-0.5">
             {language === 'vi'
               ? 'Quản lý công việc cá nhân & phân công cho Team'
               : 'Manage tasks and assignments'}
@@ -95,13 +93,13 @@ export function WorkScreen() {
           value={quickTitle}
           onChange={(e) => setQuickTitle(e.target.value)}
           placeholder={language === 'vi' ? '+ Thêm việc mới rồi bấm Enter...' : '+ Add a new task and press Enter...'}
-          className="w-full pl-3.5 pr-20 py-2.5 text-xs font-semibold rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-xs"
+          className="w-full pl-4 pr-24 py-3.5 text-sm sm:text-base font-bold rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-xs"
         />
         {quickTitle.trim() && (
           <button
             type="submit"
             disabled={isSubmitting}
-            className="absolute right-2 top-1/2 -translate-y-1/2 px-2.5 py-1 text-xs font-bold text-white bg-blue-600 rounded-xl active:scale-95 shadow-xs transition"
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 px-3.5 py-1.5 text-xs sm:text-sm font-bold text-white bg-blue-600 rounded-xl active:scale-95 shadow-xs transition"
           >
             {isSubmitting ? '...' : t.common.save}
           </button>
@@ -109,13 +107,13 @@ export function WorkScreen() {
       </form>
 
       {/* Simple 3-Tab Filter Bar */}
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-1 p-1 bg-zinc-100 dark:bg-zinc-900 rounded-xl border border-zinc-200/80 dark:border-zinc-800 text-xs font-bold">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <div className="flex items-center gap-1.5 p-1 bg-zinc-100 dark:bg-zinc-900 rounded-2xl border border-zinc-200/80 dark:border-zinc-800 text-xs sm:text-sm font-bold">
           <button
             onClick={() => setFilterTab('my')}
-            className={`px-3 py-1 rounded-lg transition ${
+            className={`px-3.5 py-1.5 rounded-xl transition ${
               filterTab === 'my'
-                ? 'bg-white dark:bg-zinc-800 text-blue-600 dark:text-blue-400 shadow-xs'
+                ? 'bg-white dark:bg-zinc-800 text-blue-600 dark:text-blue-400 shadow-xs font-black'
                 : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900'
             }`}
           >
@@ -123,9 +121,9 @@ export function WorkScreen() {
           </button>
           <button
             onClick={() => setFilterTab('team')}
-            className={`px-3 py-1 rounded-lg transition ${
+            className={`px-3.5 py-1.5 rounded-xl transition ${
               filterTab === 'team'
-                ? 'bg-white dark:bg-zinc-800 text-blue-600 dark:text-blue-400 shadow-xs'
+                ? 'bg-white dark:bg-zinc-800 text-blue-600 dark:text-blue-400 shadow-xs font-black'
                 : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900'
             }`}
           >
@@ -133,9 +131,9 @@ export function WorkScreen() {
           </button>
           <button
             onClick={() => setFilterTab('done')}
-            className={`px-3 py-1 rounded-lg transition ${
+            className={`px-3.5 py-1.5 rounded-xl transition ${
               filterTab === 'done'
-                ? 'bg-white dark:bg-zinc-800 text-emerald-600 dark:text-emerald-400 shadow-xs'
+                ? 'bg-white dark:bg-zinc-800 text-emerald-600 dark:text-emerald-400 shadow-xs font-black'
                 : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900'
             }`}
           >
@@ -143,24 +141,24 @@ export function WorkScreen() {
           </button>
         </div>
 
-        {/* Quick Search */}
-        <div className="relative w-36 sm:w-44">
-          <Search className="w-3 h-3 absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-400" />
+        {/* Search */}
+        <div className="relative flex-1 min-w-[150px] max-w-xs">
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={t.common.search}
-            className="w-full pl-7 pr-2.5 py-1 text-[11px] rounded-xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="w-full pl-9 pr-3 py-1.5 text-xs sm:text-sm rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
       </div>
 
       {/* Task List */}
-      <div className="space-y-2">
+      <div className="space-y-2.5">
         {filteredTasks.length === 0 ? (
-          <div className="py-12 text-center rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800 p-6 space-y-2">
-            <p className="text-xs font-medium text-zinc-500">
+          <div className="py-14 text-center rounded-3xl border border-dashed border-zinc-200 dark:border-zinc-800 p-8 space-y-2">
+            <p className="text-sm font-bold text-zinc-600 dark:text-zinc-400">
               {filterTab === 'done'
                 ? (language === 'vi' ? 'Chưa có công việc nào hoàn thành.' : 'No completed tasks.')
                 : (language === 'vi' ? 'Không có việc nào cần làm. Nhập ở trên để thêm việc mới!' : 'No tasks here. Type above to add one!')}
@@ -172,11 +170,19 @@ export function WorkScreen() {
             const isAssignedToMe = task.assignee_id === currentUserId;
             const dueInfo = formatDueDate(task.due_date);
 
+            // Clear Team collaboration assignment context
+            let assignmentContext = '';
+            if (isAssignedToMe && task.creator_id !== currentUserId) {
+              assignmentContext = `${task.creator_name || 'Team'} → ${task.assignee_name || 'Bạn'}`;
+            } else if (!isAssignedToMe) {
+              assignmentContext = `${task.creator_name || 'Bạn'} → ${task.assignee_name || 'Team'}`;
+            }
+
             return (
               <div
                 key={task.id}
                 onClick={() => setSelectedTask(task)}
-                className={`flex items-start gap-3 p-3 rounded-2xl border transition cursor-pointer ${
+                className={`flex items-start gap-3.5 p-3.5 rounded-2xl border transition cursor-pointer ${
                   isCompleted
                     ? 'bg-zinc-50/60 dark:bg-zinc-900/30 border-zinc-200/60 dark:border-zinc-800/60 opacity-70'
                     : 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 shadow-xs'
@@ -206,7 +212,7 @@ export function WorkScreen() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2">
                     <span
-                      className={`text-xs font-semibold leading-snug break-words ${
+                      className={`text-sm sm:text-base font-bold leading-snug break-words ${
                         isCompleted
                           ? 'line-through text-zinc-400'
                           : 'text-zinc-900 dark:text-zinc-100'
@@ -216,17 +222,17 @@ export function WorkScreen() {
                     </span>
 
                     {task.priority === 'urgent' && !isCompleted && (
-                      <span className="px-1.5 py-0.2 rounded-md text-[9px] font-extrabold bg-rose-500 text-white shrink-0">
+                      <span className="px-2 py-0.5 rounded-md text-[10px] font-black bg-rose-500 text-white shrink-0">
                         {t.statusLabels.urgent}
                       </span>
                     )}
                   </div>
 
                   {/* Metadata */}
-                  <div className="flex items-center gap-2 flex-wrap mt-1 text-[10px] text-zinc-400">
+                  <div className="flex items-center gap-2.5 flex-wrap mt-1.5 text-xs text-zinc-400">
                     {task.project_name && (
                       <span
-                        className="px-1.5 py-0.5 rounded-md font-bold text-[9px]"
+                        className="px-2 py-0.5 rounded-md font-bold text-xs"
                         style={{
                           backgroundColor: `${task.project_color || '#3b82f6'}18`,
                           color: task.project_color || '#3b82f6',
@@ -236,20 +242,20 @@ export function WorkScreen() {
                       </span>
                     )}
 
-                    {!isAssignedToMe && task.assignee_name && (
-                      <span className="flex items-center gap-1 text-zinc-600 dark:text-zinc-300 font-medium">
-                        <UserCheck className="w-3 h-3" />
-                        <span>{task.assignee_name}</span>
+                    {assignmentContext && (
+                      <span className="flex items-center gap-1 font-bold text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/40 px-2 py-0.5 rounded-md">
+                        <UserCheck className="w-3.5 h-3.5" />
+                        <span>{assignmentContext}</span>
                       </span>
                     )}
 
                     {task.due_date && (
                       <span
-                        className={`flex items-center gap-1 ${
+                        className={`flex items-center gap-1 font-semibold ${
                           dueInfo.isOverdue ? 'text-rose-600 font-bold' : ''
                         }`}
                       >
-                        <Clock className="w-3 h-3" />
+                        <Clock className="w-3.5 h-3.5" />
                         <span>{dueInfo.text}</span>
                       </span>
                     )}

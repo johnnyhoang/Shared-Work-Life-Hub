@@ -22,7 +22,7 @@ export function TaskDetailModal() {
     fetchComments,
     addComment,
   } = useHub();
-  const { t } = useI18n();
+  const { t, language } = useI18n();
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -86,45 +86,45 @@ export function TaskDetailModal() {
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-xs">
       <div
-        className="w-full max-w-lg max-h-[90vh] bg-white dark:bg-zinc-900 rounded-t-2xl sm:rounded-2xl shadow-2xl border border-zinc-200 dark:border-zinc-800 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-6 duration-200"
+        className="w-full max-w-lg max-h-[90vh] bg-white dark:bg-zinc-900 rounded-t-3xl sm:rounded-3xl shadow-2xl border border-zinc-200 dark:border-zinc-800 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-6 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-200 dark:border-zinc-800">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-100 dark:border-zinc-800">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">
+            <span className="text-sm font-bold text-zinc-600 dark:text-zinc-400">
               {t.work.taskDetails}
             </span>
           </div>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1.5">
             <button
               onClick={() => {
                 if (confirm(t.work.deleteConfirm)) {
                   deleteTask(selectedTask.id);
                 }
               }}
-              className="p-1.5 text-zinc-400 hover:text-rose-500 rounded-lg transition"
+              className="p-2 text-zinc-400 hover:text-rose-500 rounded-xl transition"
               title="Delete task"
             >
-              <Trash2 className="w-4 h-4" />
+              <Trash2 className="w-5 h-5" />
             </button>
             <button
               onClick={() => setSelectedTask(null)}
-              className="p-1.5 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 rounded-lg transition"
+              className="p-2 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 rounded-xl transition"
             >
-              <X className="w-4 h-4" />
+              <X className="w-5 h-5" />
             </button>
           </div>
         </div>
 
         {/* Scrollable Body */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <div className="flex-1 overflow-y-auto p-5 space-y-4">
           {/* Status Tabs */}
           <div>
-            <label className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block mb-1.5">
+            <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider block mb-2">
               {t.work.status}
             </label>
-            <div className="grid grid-cols-4 gap-1.5">
+            <div className="grid grid-cols-4 gap-2">
               {statuses.map((s) => {
                 const isActive = status === s.id;
                 return (
@@ -135,7 +135,7 @@ export function TaskDetailModal() {
                       setStatus(s.id);
                       handleSaveField({ status: s.id });
                     }}
-                    className={`py-1.5 px-2 rounded-lg text-xs font-semibold transition text-center ${
+                    className={`py-2 px-2 rounded-xl text-xs sm:text-sm font-bold transition text-center ${
                       isActive
                         ? 'ring-2 ring-blue-500 ' + s.color
                         : 'bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-600 dark:text-zinc-400'
@@ -150,7 +150,7 @@ export function TaskDetailModal() {
 
           {/* Title Input */}
           <div>
-            <label className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block mb-1">
+            <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider block mb-1.5">
               {t.work.taskTitle}
             </label>
             <input
@@ -158,13 +158,13 @@ export function TaskDetailModal() {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               onBlur={() => handleSaveField({ title })}
-              className="w-full px-3 py-2 text-sm font-semibold rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-zinc-900 dark:text-zinc-100"
+              className="w-full px-4 py-2.5 text-sm sm:text-base font-bold rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-zinc-900 dark:text-zinc-100"
             />
           </div>
 
           {/* Description Textarea */}
           <div>
-            <label className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block mb-1">
+            <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider block mb-1.5">
               {t.work.taskDesc}
             </label>
             <textarea
@@ -173,7 +173,7 @@ export function TaskDetailModal() {
               onChange={(e) => setDescription(e.target.value)}
               onBlur={() => handleSaveField({ description })}
               placeholder={t.work.taskDesc}
-              className="w-full px-3 py-2 text-xs rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-zinc-900 dark:text-zinc-100 resize-none"
+              className="w-full px-4 py-2.5 text-xs sm:text-sm rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-zinc-900 dark:text-zinc-100 resize-none"
             />
           </div>
 
@@ -181,7 +181,7 @@ export function TaskDetailModal() {
           <div className="grid grid-cols-2 gap-3 pt-1">
             {/* Assignee */}
             <div>
-              <label className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block mb-1">
+              <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider block mb-1.5">
                 {t.work.assignee}
               </label>
               <select
@@ -190,11 +190,11 @@ export function TaskDetailModal() {
                   setAssigneeId(e.target.value);
                   handleSaveField({ assignee_id: e.target.value });
                 }}
-                className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 text-xs sm:text-sm font-semibold rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 {hubState.users.map((u) => (
                   <option key={u.id} value={u.id}>
-                    {u.avatar || '👤'} {u.name} ({u.role === 'admin' ? t.team.roleLead : t.team.roleMember})
+                    {u.avatar || '👤'} {u.name}
                   </option>
                 ))}
               </select>
@@ -202,7 +202,7 @@ export function TaskDetailModal() {
 
             {/* Priority */}
             <div>
-              <label className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block mb-1">
+              <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider block mb-1.5">
                 {t.work.priority}
               </label>
               <select
@@ -212,7 +212,7 @@ export function TaskDetailModal() {
                   setPriority(p);
                   handleSaveField({ priority: p });
                 }}
-                className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 text-xs sm:text-sm font-semibold rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 {priorities.map((p) => (
                   <option key={p.id} value={p.id}>
@@ -224,7 +224,7 @@ export function TaskDetailModal() {
 
             {/* Project */}
             <div>
-              <label className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block mb-1">
+              <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider block mb-1.5">
                 {t.work.project}
               </label>
               <select
@@ -234,7 +234,7 @@ export function TaskDetailModal() {
                   setProjectId(pid);
                   handleSaveField({ project_id: pid });
                 }}
-                className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 text-xs sm:text-sm font-semibold rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">{t.common.noProject}</option>
                 {hubState.projects.map((proj) => (
@@ -247,7 +247,7 @@ export function TaskDetailModal() {
 
             {/* Due Date */}
             <div>
-              <label className="text-[11px] font-semibold text-zinc-400 uppercase tracking-wider block mb-1">
+              <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider block mb-1.5">
                 {t.work.dueDate}
               </label>
               <input
@@ -257,43 +257,40 @@ export function TaskDetailModal() {
                   setDueDate(e.target.value);
                   handleSaveField({ due_date: e.target.value || null });
                 }}
-                className="w-full px-2.5 py-1.5 text-xs rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 text-xs sm:text-sm font-semibold rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
           </div>
 
           {/* Comments Section */}
-          <div className="pt-3 border-t border-zinc-200 dark:border-zinc-800">
-            <h5 className="text-xs font-bold text-zinc-800 dark:text-zinc-200 flex items-center gap-1.5 mb-3">
-              <MessageSquare className="w-3.5 h-3.5 text-blue-600" />
-              <span>{t.work.commentsTitle}</span>
-              <span className="text-[11px] font-normal text-zinc-500">
-                ({comments.length})
-              </span>
+          <div className="pt-4 border-t border-zinc-200 dark:border-zinc-800">
+            <h5 className="text-xs sm:text-sm font-bold text-zinc-800 dark:text-zinc-200 flex items-center gap-2 mb-3">
+              <MessageSquare className="w-4 h-4 text-blue-600" />
+              <span>{t.work.commentsTitle} ({comments.length})</span>
             </h5>
 
             {/* Comment list */}
             <div className="space-y-2.5 max-h-48 overflow-y-auto pr-1">
               {comments.length === 0 ? (
-                <div className="text-xs text-zinc-400 py-2 text-center">
+                <div className="text-xs text-zinc-400 py-3 text-center">
                   {t.work.noComments}
                 </div>
               ) : (
                 comments.map((c) => (
                   <div
                     key={c.id}
-                    className="p-2.5 rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200/80 dark:border-zinc-700/60 text-xs"
+                    className="p-3 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200/80 dark:border-zinc-700/60 text-xs sm:text-sm"
                   >
                     <div className="flex items-center justify-between mb-1">
-                      <div className="flex items-center gap-1.5 font-semibold text-zinc-800 dark:text-zinc-200">
+                      <div className="flex items-center gap-2 font-bold text-zinc-900 dark:text-zinc-100">
                         <span>{c.user_avatar || '👤'}</span>
                         <span>{c.user_name || 'Member'}</span>
                       </div>
-                      <span className="text-[10px] text-zinc-400">
+                      <span className="text-[11px] text-zinc-400">
                         {formatRelativeTime(c.created_at)}
                       </span>
                     </div>
-                    <p className="text-zinc-700 dark:text-zinc-300 text-[11px] whitespace-pre-wrap">
+                    <p className="text-zinc-700 dark:text-zinc-300 text-xs sm:text-sm whitespace-pre-wrap mt-1">
                       {c.content}
                     </p>
                   </div>
@@ -308,14 +305,14 @@ export function TaskDetailModal() {
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
                 placeholder={t.work.writeComment}
-                className="flex-1 px-3 py-2 text-xs rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-zinc-900 dark:text-zinc-100"
+                className="flex-1 px-3.5 py-2 text-xs sm:text-sm rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-blue-500 text-zinc-900 dark:text-zinc-100"
               />
               <button
                 type="submit"
                 disabled={isSubmittingComment || !newComment.trim()}
-                className="px-3 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs font-semibold rounded-xl flex items-center gap-1 transition"
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs sm:text-sm font-bold rounded-xl flex items-center gap-1.5 transition"
               >
-                <Send className="w-3.5 h-3.5" />
+                <Send className="w-4 h-4" />
               </button>
             </form>
           </div>
