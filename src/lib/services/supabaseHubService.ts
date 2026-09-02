@@ -21,9 +21,9 @@ export async function getSupabaseHubState(): Promise<HubState | null> {
     data: { user: authUser },
   } = await supabase.auth.getUser();
 
-  // Fetch all profiles (team members)
+  // Fetch all profiles from sw_profiles
   const { data: profiles, error: profileErr } = await supabase
-    .from('profiles')
+    .from('sw_profiles')
     .select('*')
     .order('created_at', { ascending: true });
 
@@ -52,14 +52,14 @@ export async function getSupabaseHubState(): Promise<HubState | null> {
 
   const partnerUser = users.find((u) => u.id !== currentUser.id) || currentUser;
 
-  // 2. Fetch Projects
+  // 2. Fetch Projects (sw_projects)
   const { data: rawProjects } = await supabase
-    .from('projects')
-    .select('*, tasks(id, status)')
+    .from('sw_projects')
+    .select('*, sw_tasks(id, status)')
     .order('updated_at', { ascending: false });
 
   const projects: Project[] = (rawProjects || []).map((p: any) => {
-    const pTasks = p.tasks || [];
+    const pTasks = p.sw_tasks || [];
     const total = pTasks.length;
     const done = pTasks.filter((t: any) => t.status === 'done').length;
     return {
@@ -77,16 +77,16 @@ export async function getSupabaseHubState(): Promise<HubState | null> {
     };
   });
 
-  // 3. Fetch Tasks
+  // 3. Fetch Tasks (sw_tasks)
   const { data: rawTasks } = await supabase
-    .from('tasks')
+    .from('sw_tasks')
     .select(
       `
       *,
-      project:projects(name, color),
-      creator:profiles!tasks_creator_id_fkey(name),
-      assignee:profiles!tasks_assignee_id_fkey(name),
-      comments:comments(id)
+      project:sw_projects(name, color),
+      creator:sw_profiles!sw_tasks_creator_id_fkey(name),
+      assignee:sw_profiles!sw_tasks_assignee_id_fkey(name),
+      comments:sw_comments(id)
     `
     )
     .order('updated_at', { ascending: false });
@@ -110,10 +110,10 @@ export async function getSupabaseHubState(): Promise<HubState | null> {
     comment_count: t.comments?.length || 0,
   }));
 
-  // 4. Fetch Ideas
+  // 4. Fetch Ideas (sw_ideas)
   const { data: rawIdeas } = await supabase
-    .from('ideas')
-    .select('*, project:projects(name), creator:profiles(name)')
+    .from('sw_ideas')
+    .select('*, project:sw_projects(name), creator:sw_profiles(name)')
     .order('updated_at', { ascending: false });
 
   const ideas: Idea[] = (rawIdeas || []).map((i: any) => ({
@@ -129,10 +129,10 @@ export async function getSupabaseHubState(): Promise<HubState | null> {
     creator_name: i.creator?.name,
   }));
 
-  // 5. Fetch Knowledge
+  // 5. Fetch Knowledge (sw_knowledge)
   const { data: rawKnowledge } = await supabase
-    .from('knowledge')
-    .select('*, project:projects(name), user:profiles(name)')
+    .from('sw_knowledge')
+    .select('*, project:sw_projects(name), user:sw_profiles(name)')
     .order('updated_at', { ascending: false });
 
   const knowledge: Knowledge[] = (rawKnowledge || []).map((k: any) => ({
@@ -148,10 +148,10 @@ export async function getSupabaseHubState(): Promise<HubState | null> {
     user_name: k.user?.name,
   }));
 
-  // 6. Fetch Decisions
+  // 6. Fetch Decisions (sw_decisions)
   const { data: rawDecisions } = await supabase
-    .from('decisions')
-    .select('*, project:projects(name), author:profiles(name)')
+    .from('sw_decisions')
+    .select('*, project:sw_projects(name), author:sw_profiles(name)')
     .order('created_at', { ascending: false });
 
   const decisions: Decision[] = (rawDecisions || []).map((d: any) => ({
@@ -165,15 +165,15 @@ export async function getSupabaseHubState(): Promise<HubState | null> {
     author_name: d.author?.name,
   }));
 
-  // 7. Fetch Activities
+  // 7. Fetch Activities (sw_activities)
   const { data: rawActivities } = await supabase
-    .from('activities')
+    .from('sw_activities')
     .select(
       `
       *,
-      actor:profiles!activities_actor_id_fkey(name, avatar_url),
-      target:profiles!activities_target_user_id_fkey(name),
-      project:projects(name)
+      actor:sw_profiles!sw_activities_actor_id_fkey(name, avatar_url),
+      target:sw_profiles!sw_activities_target_user_id_fkey(name),
+      project:sw_projects(name)
     `
     )
     .order('created_at', { ascending: false })
@@ -293,7 +293,7 @@ export async function getSupabaseHubState(): Promise<HubState | null> {
 export async function updateProfileRole(userId: string, role: UserRole) {
   const supabase = await createClient();
   const { data, error } = await supabase
-    .from('profiles')
+    .from('sw_profiles')
     .update({ role })
     .eq('id', userId)
     .select()
