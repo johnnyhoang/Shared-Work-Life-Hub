@@ -3,217 +3,262 @@
 import React, { useState } from 'react';
 import { useHub } from '@/context/HubContext';
 import { useI18n } from '@/lib/i18n';
-import { TaskCard } from './TaskCard';
-import { TaskStatus } from '@/types';
+import { Task } from '@/types';
+import { formatDueDate } from '@/lib/dateUtils';
 import {
+  CheckCircle2,
+  Circle,
   Plus,
   Search,
-  CheckCircle2,
-  Inbox,
-  ListTodo,
-  PlayCircle,
+  Clock,
+  UserCheck,
 } from 'lucide-react';
 
-type WorkViewTab = 'my_work' | 'assigned_by_me' | 'waiting' | 'all';
-
 export function WorkScreen() {
-  const { hubState, openQuickAction } = useHub();
-  const { t } = useI18n();
-  const [viewTab, setViewTab] = useState<WorkViewTab>('my_work');
-  const [selectedProjectId, setSelectedProjectId] = useState<string>('all');
-  const [selectedPriority, setSelectedPriority] = useState<string>('all');
-  const [searchQuery, setSearchQuery] = useState<string>('');
+  const {
+    hubState,
+    createTask,
+    setSelectedTask,
+    toggleTaskStatus,
+  } = useHub();
+  const { t, language } = useI18n();
+
+  const [filterTab, setFilterTab] = useState<'my' | 'team' | 'done'>('my');
+  const [quickTitle, setQuickTitle] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!hubState) return null;
 
   const currentUserId = hubState.currentUser.id;
 
-  // Filter tasks based on view tab & filters
+  const handleQuickSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!quickTitle.trim() || isSubmitting) return;
+
+    setIsSubmitting(true);
+    await createTask({
+      title: quickTitle.trim(),
+      assignee_id: currentUserId,
+      priority: 'medium',
+      status: 'todo',
+    });
+    setQuickTitle('');
+    setIsSubmitting(false);
+  };
+
   const filteredTasks = hubState.tasks.filter((task) => {
-    // 1. Tab View Filter
-    if (viewTab === 'my_work') {
-      if (task.assignee_id !== currentUserId) return false;
-    } else if (viewTab === 'assigned_by_me') {
-      if (task.creator_id !== currentUserId || task.assignee_id === currentUserId) return false;
-    } else if (viewTab === 'waiting') {
-      if (task.creator_id !== currentUserId || task.assignee_id === currentUserId || task.status === 'done') return false;
+    // 1. Tab filter
+    if (filterTab === 'done') {
+      if (task.status !== 'done') return false;
+    } else {
+      if (task.status === 'done') return false;
+
+      if (filterTab === 'my') {
+        if (task.assignee_id !== currentUserId) return false;
+      } else if (filterTab === 'team') {
+        if (task.assignee_id === currentUserId) return false;
+      }
     }
 
-    // 2. Project Filter
-    if (selectedProjectId !== 'all' && task.project_id !== selectedProjectId) {
-      return false;
-    }
-
-    // 3. Priority Filter
-    if (selectedPriority !== 'all' && task.priority !== selectedPriority) {
-      return false;
-    }
-
-    // 4. Search Query
+    // 2. Search query
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       const matchTitle = task.title.toLowerCase().includes(q);
-      const matchDesc = task.description?.toLowerCase().includes(q);
       const matchProject = task.project_name?.toLowerCase().includes(q);
-      if (!matchTitle && !matchDesc && !matchProject) return false;
+      if (!matchTitle && !matchProject) return false;
     }
 
     return true;
   });
 
-  const taskGroups: { status: TaskStatus; label: string; icon: React.ComponentType<{ className?: string }>; color: string }[] = [
-    { status: 'in_progress', label: t.statusLabels.in_progress, icon: PlayCircle, color: 'text-amber-500' },
-    { status: 'todo', label: t.statusLabels.todo, icon: ListTodo, color: 'text-blue-500' },
-    { status: 'inbox', label: t.statusLabels.inbox, icon: Inbox, color: 'text-zinc-500' },
-    { status: 'done', label: t.statusLabels.done, icon: CheckCircle2, color: 'text-emerald-500' },
-  ];
-
   return (
-    <div className="space-y-4 pb-20 md:pb-8">
-      {/* Header & New Task button */}
-      <div className="flex items-center justify-between gap-3 pt-1">
+    <div className="space-y-4 pb-20 md:pb-8 max-w-2xl mx-auto">
+      {/* Header & Title */}
+      <div className="flex items-center justify-between gap-3 pt-2">
         <div>
-          <h1 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
+          <h1 className="text-xl font-black tracking-tight text-zinc-900 dark:text-zinc-50">
             {t.work.title}
           </h1>
           <p className="text-xs text-zinc-500 dark:text-zinc-400">
-            {t.work.subtitle}
+            {language === 'vi'
+              ? 'Quản lý công việc cá nhân & phân công cho Team'
+              : 'Manage tasks and assignments'}
           </p>
         </div>
-
-        <button
-          onClick={() => openQuickAction('task')}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 active:scale-95 rounded-xl shadow-xs transition"
-        >
-          <Plus className="w-4 h-4" />
-          <span>{t.work.newTask}</span>
-        </button>
       </div>
 
-      {/* Segmented Tab Bar */}
-      <div className="grid grid-cols-4 p-1 rounded-xl bg-zinc-100 dark:bg-zinc-800/80 border border-zinc-200/80 dark:border-zinc-700/60 text-xs font-medium">
-        <button
-          onClick={() => setViewTab('my_work')}
-          className={`py-1.5 px-2 rounded-lg transition text-center truncate ${
-            viewTab === 'my_work'
-              ? 'bg-white dark:bg-zinc-900 text-blue-600 dark:text-blue-400 font-bold shadow-xs'
-              : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
-          }`}
-        >
-          {t.work.myWork}
-        </button>
-        <button
-          onClick={() => setViewTab('assigned_by_me')}
-          className={`py-1.5 px-2 rounded-lg transition text-center truncate ${
-            viewTab === 'assigned_by_me'
-              ? 'bg-white dark:bg-zinc-900 text-blue-600 dark:text-blue-400 font-bold shadow-xs'
-              : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
-          }`}
-        >
-          {t.work.assignedByMe}
-        </button>
-        <button
-          onClick={() => setViewTab('waiting')}
-          className={`py-1.5 px-2 rounded-lg transition text-center truncate ${
-            viewTab === 'waiting'
-              ? 'bg-white dark:bg-zinc-900 text-blue-600 dark:text-blue-400 font-bold shadow-xs'
-              : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
-          }`}
-        >
-          {t.work.waiting}
-        </button>
-        <button
-          onClick={() => setViewTab('all')}
-          className={`py-1.5 px-2 rounded-lg transition text-center truncate ${
-            viewTab === 'all'
-              ? 'bg-white dark:bg-zinc-900 text-blue-600 dark:text-blue-400 font-bold shadow-xs'
-              : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
-          }`}
-        >
-          {t.work.allTasks}
-        </button>
-      </div>
+      {/* 1-Line Quick Task Add Bar */}
+      <form onSubmit={handleQuickSubmit} className="relative">
+        <input
+          type="text"
+          value={quickTitle}
+          onChange={(e) => setQuickTitle(e.target.value)}
+          placeholder={language === 'vi' ? '+ Thêm việc mới rồi bấm Enter...' : '+ Add a new task and press Enter...'}
+          className="w-full pl-3.5 pr-20 py-2.5 text-xs font-semibold rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-xs"
+        />
+        {quickTitle.trim() && (
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="absolute right-2 top-1/2 -translate-y-1/2 px-2.5 py-1 text-xs font-bold text-white bg-blue-600 rounded-xl active:scale-95 shadow-xs transition"
+          >
+            {isSubmitting ? '...' : t.common.save}
+          </button>
+        )}
+      </form>
 
-      {/* Filter Toolbar */}
-      <div className="flex items-center gap-2 flex-wrap">
-        {/* Search */}
-        <div className="relative flex-1 min-w-[140px]">
-          <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-400" />
+      {/* Simple 3-Tab Filter Bar */}
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-1 p-1 bg-zinc-100 dark:bg-zinc-900 rounded-xl border border-zinc-200/80 dark:border-zinc-800 text-xs font-bold">
+          <button
+            onClick={() => setFilterTab('my')}
+            className={`px-3 py-1 rounded-lg transition ${
+              filterTab === 'my'
+                ? 'bg-white dark:bg-zinc-800 text-blue-600 dark:text-blue-400 shadow-xs'
+                : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900'
+            }`}
+          >
+            {language === 'vi' ? 'Của tôi' : 'My Work'}
+          </button>
+          <button
+            onClick={() => setFilterTab('team')}
+            className={`px-3 py-1 rounded-lg transition ${
+              filterTab === 'team'
+                ? 'bg-white dark:bg-zinc-800 text-blue-600 dark:text-blue-400 shadow-xs'
+                : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900'
+            }`}
+          >
+            {language === 'vi' ? 'Của Team' : 'Team Work'}
+          </button>
+          <button
+            onClick={() => setFilterTab('done')}
+            className={`px-3 py-1 rounded-lg transition ${
+              filterTab === 'done'
+                ? 'bg-white dark:bg-zinc-800 text-emerald-600 dark:text-emerald-400 shadow-xs'
+                : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900'
+            }`}
+          >
+            {language === 'vi' ? 'Đã xong' : 'Done'}
+          </button>
+        </div>
+
+        {/* Quick Search */}
+        <div className="relative w-36 sm:w-44">
+          <Search className="w-3 h-3 absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-400" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={t.common.search}
-            className="w-full pl-8 pr-3 py-1.5 text-xs rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full pl-7 pr-2.5 py-1 text-[11px] rounded-xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-1 focus:ring-blue-500"
           />
         </div>
-
-        {/* Project Selector */}
-        <select
-          value={selectedProjectId}
-          onChange={(e) => setSelectedProjectId(e.target.value)}
-          className="px-2.5 py-1.5 text-xs rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="all">{t.work.allProjects}</option>
-          {hubState.projects.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.name}
-            </option>
-          ))}
-        </select>
-
-        {/* Priority Selector */}
-        <select
-          value={selectedPriority}
-          onChange={(e) => setSelectedPriority(e.target.value)}
-          className="px-2.5 py-1.5 text-xs rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="all">{t.work.allPriorities}</option>
-          <option value="urgent">{t.statusLabels.urgent}</option>
-          <option value="high">{t.statusLabels.high}</option>
-          <option value="medium">{t.statusLabels.medium}</option>
-          <option value="low">{t.statusLabels.low}</option>
-        </select>
       </div>
 
-      {/* Tasks grouped by Status */}
-      <div className="space-y-4">
-        {taskGroups.map((group) => {
-          const groupTasks = filteredTasks.filter((t) => t.status === group.status);
-          const Icon = group.icon;
+      {/* Task List */}
+      <div className="space-y-2">
+        {filteredTasks.length === 0 ? (
+          <div className="py-12 text-center rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800 p-6 space-y-2">
+            <p className="text-xs font-medium text-zinc-500">
+              {filterTab === 'done'
+                ? (language === 'vi' ? 'Chưa có công việc nào hoàn thành.' : 'No completed tasks.')
+                : (language === 'vi' ? 'Không có việc nào cần làm. Nhập ở trên để thêm việc mới!' : 'No tasks here. Type above to add one!')}
+            </p>
+          </div>
+        ) : (
+          filteredTasks.map((task) => {
+            const isCompleted = task.status === 'done';
+            const isAssignedToMe = task.assignee_id === currentUserId;
+            const dueInfo = formatDueDate(task.due_date);
 
-          if (groupTasks.length === 0 && (viewTab === 'waiting' || searchQuery)) {
-            return null;
-          }
+            return (
+              <div
+                key={task.id}
+                onClick={() => setSelectedTask(task)}
+                className={`flex items-start gap-3 p-3 rounded-2xl border transition cursor-pointer ${
+                  isCompleted
+                    ? 'bg-zinc-50/60 dark:bg-zinc-900/30 border-zinc-200/60 dark:border-zinc-800/60 opacity-70'
+                    : 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 shadow-xs'
+                }`}
+              >
+                {/* 1-Tap Toggle Done */}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleTaskStatus(task);
+                  }}
+                  className={`mt-0.5 transition ${
+                    isCompleted
+                      ? 'text-emerald-500'
+                      : 'text-zinc-400 hover:text-emerald-500'
+                  }`}
+                >
+                  {isCompleted ? (
+                    <CheckCircle2 className="w-5 h-5 fill-emerald-100 dark:fill-emerald-950/40" />
+                  ) : (
+                    <Circle className="w-5 h-5" />
+                  )}
+                </button>
 
-          return (
-            <div key={group.status} className="space-y-2">
-              <div className="flex items-center justify-between px-1">
-                <div className="flex items-center gap-1.5">
-                  <Icon className={`w-4 h-4 ${group.color}`} />
-                  <span className="text-xs font-bold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
-                    {group.label}
-                  </span>
-                  <span className="px-1.5 py-0.2 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 text-[10px] font-bold">
-                    {groupTasks.length}
-                  </span>
+                {/* Content */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-2">
+                    <span
+                      className={`text-xs font-semibold leading-snug break-words ${
+                        isCompleted
+                          ? 'line-through text-zinc-400'
+                          : 'text-zinc-900 dark:text-zinc-100'
+                      }`}
+                    >
+                      {task.title}
+                    </span>
+
+                    {task.priority === 'urgent' && !isCompleted && (
+                      <span className="px-1.5 py-0.2 rounded-md text-[9px] font-extrabold bg-rose-500 text-white shrink-0">
+                        {t.statusLabels.urgent}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Metadata */}
+                  <div className="flex items-center gap-2 flex-wrap mt-1 text-[10px] text-zinc-400">
+                    {task.project_name && (
+                      <span
+                        className="px-1.5 py-0.5 rounded-md font-bold text-[9px]"
+                        style={{
+                          backgroundColor: `${task.project_color || '#3b82f6'}18`,
+                          color: task.project_color || '#3b82f6',
+                        }}
+                      >
+                        {task.project_name}
+                      </span>
+                    )}
+
+                    {!isAssignedToMe && task.assignee_name && (
+                      <span className="flex items-center gap-1 text-zinc-600 dark:text-zinc-300 font-medium">
+                        <UserCheck className="w-3 h-3" />
+                        <span>{task.assignee_name}</span>
+                      </span>
+                    )}
+
+                    {task.due_date && (
+                      <span
+                        className={`flex items-center gap-1 ${
+                          dueInfo.isOverdue ? 'text-rose-600 font-bold' : ''
+                        }`}
+                      >
+                        <Clock className="w-3 h-3" />
+                        <span>{dueInfo.text}</span>
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
-
-              {groupTasks.length === 0 ? (
-                <div className="py-3 px-4 rounded-xl border border-dashed border-zinc-200 dark:border-zinc-800 text-center text-xs text-zinc-400">
-                  {group.label}
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {groupTasks.map((task) => (
-                    <TaskCard key={task.id} task={task} />
-                  ))}
-                </div>
-              )}
-            </div>
-          );
-        })}
+            );
+          })
+        )}
       </div>
     </div>
   );

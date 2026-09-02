@@ -3,151 +3,177 @@
 import React, { useState } from 'react';
 import { useHub } from '@/context/HubContext';
 import { useI18n } from '@/lib/i18n';
-import { ProjectStatus } from '@/types';
-import { formatRelativeTime } from '@/lib/dateUtils';
-import { Plus, ArrowRight } from 'lucide-react';
+import {
+  FolderKanban,
+  Lightbulb,
+  Plus,
+  ArrowRight,
+  Sparkles,
+} from 'lucide-react';
 
 export function ProjectsScreen() {
-  const { hubState, setSelectedProject, createProject } = useHub();
-  const { t } = useI18n();
-  const [statusFilter, setStatusFilter] = useState<ProjectStatus | 'all'>('active');
+  const {
+    hubState,
+    setSelectedProject,
+    createProject,
+    createIdea,
+    openQuickAction,
+  } = useHub();
+  const { t, language } = useI18n();
+
+  const [activeSubTab, setActiveSubTab] = useState<'projects' | 'ideas'>('projects');
 
   if (!hubState) return null;
 
-  const filteredProjects = hubState.projects.filter((p) => {
-    if (statusFilter === 'all') return true;
-    return p.status === statusFilter;
-  });
+  const { projects, ideas } = hubState;
+
+  const handleAddProject = () => {
+    const name = prompt(language === 'vi' ? 'Tên dự án mới:' : 'New Project Name:');
+    if (name && name.trim()) {
+      createProject({
+        name: name.trim(),
+      });
+    }
+  };
 
   return (
-    <div className="space-y-4 pb-20 md:pb-8">
+    <div className="space-y-4 pb-20 md:pb-8 max-w-2xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between gap-3 pt-1">
+      <div className="flex items-center justify-between gap-3 pt-2">
         <div>
-          <h1 className="text-xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
-            {t.projects.title}
+          <h1 className="text-xl font-black tracking-tight text-zinc-900 dark:text-zinc-50">
+            {language === 'vi' ? 'Không gian chung' : 'Hub Space'}
           </h1>
           <p className="text-xs text-zinc-500 dark:text-zinc-400">
-            {t.projects.subtitle}
+            {language === 'vi'
+              ? 'Dự án, ý tưởng & ghi chú làm việc của Team'
+              : 'Projects, ideas & notes for collaboration'}
           </p>
         </div>
 
         <button
           onClick={() => {
-            const name = prompt('Project Name / Tên dự án:');
-            if (name && name.trim()) {
-              const desc = prompt('Description / Mô tả (optional):') || '';
-              createProject({
-                name: name.trim(),
-                description: desc.trim() || undefined,
-              });
+            if (activeSubTab === 'projects') {
+              handleAddProject();
+            } else {
+              openQuickAction('idea');
             }
           }}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 active:scale-95 rounded-xl shadow-xs transition"
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 active:scale-95 rounded-xl shadow-xs transition"
         >
-          <Plus className="w-4 h-4" />
-          <span>{t.projects.newProject}</span>
+          <Plus className="w-3.5 h-3.5" />
+          <span>{activeSubTab === 'projects' ? t.projects.newProject : t.ideas.newIdea}</span>
         </button>
       </div>
 
-      {/* Filter tabs */}
-      <div className="flex items-center gap-2 p-1 rounded-xl bg-zinc-100 dark:bg-zinc-800/80 border border-zinc-200/80 dark:border-zinc-700/60 text-xs font-medium w-fit">
-        {(['active', 'paused', 'archived', 'all'] as const).map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setStatusFilter(tab)}
-            className={`px-3 py-1 rounded-lg capitalize transition ${
-              statusFilter === tab
-                ? 'bg-white dark:bg-zinc-900 text-blue-600 dark:text-blue-400 font-bold shadow-xs'
-                : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
-            }`}
-          >
-            {tab === 'all' ? t.common.all : tab}
-          </button>
-        ))}
+      {/* 2 Subtabs: Projects & Ideas */}
+      <div className="flex items-center gap-1 p-1 bg-zinc-100 dark:bg-zinc-900 rounded-xl border border-zinc-200/80 dark:border-zinc-800 text-xs font-bold w-fit">
+        <button
+          onClick={() => setActiveSubTab('projects')}
+          className={`flex items-center gap-1.5 px-3 py-1 rounded-lg transition ${
+            activeSubTab === 'projects'
+              ? 'bg-white dark:bg-zinc-800 text-blue-600 dark:text-blue-400 shadow-xs'
+              : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900'
+          }`}
+        >
+          <FolderKanban className="w-3.5 h-3.5" />
+          <span>{t.projects.title} ({projects.length})</span>
+        </button>
+
+        <button
+          onClick={() => setActiveSubTab('ideas')}
+          className={`flex items-center gap-1.5 px-3 py-1 rounded-lg transition ${
+            activeSubTab === 'ideas'
+              ? 'bg-white dark:bg-zinc-800 text-amber-600 dark:text-amber-400 shadow-xs'
+              : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900'
+          }`}
+        >
+          <Lightbulb className="w-3.5 h-3.5" />
+          <span>{t.ideas.title} ({ideas.length})</span>
+        </button>
       </div>
 
-      {/* Project Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {filteredProjects.map((project) => {
-          const totalTasks = project.total_tasks || 0;
-          const completedTasks = project.completed_tasks || 0;
-          const activeTasks = project.active_tasks || 0;
-          const progressPercent =
-            totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+      {/* Projects List View */}
+      {activeSubTab === 'projects' && (
+        <div className="space-y-2.5">
+          {projects.length === 0 ? (
+            <div className="py-12 text-center rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800 p-6 space-y-2">
+              <p className="text-xs font-medium text-zinc-500">
+                {language === 'vi' ? 'Chưa có dự án nào. Bấm nút "+ Dự án mới" để bắt đầu!' : 'No projects yet. Click "+ New Project" to start!'}
+              </p>
+            </div>
+          ) : (
+            projects.map((proj) => {
+              const activeCount = proj.active_tasks || 0;
+              const totalCount = proj.total_tasks || 0;
 
-          return (
-            <div
-              key={project.id}
-              onClick={() => setSelectedProject(project)}
-              className="group p-4 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 shadow-xs hover:shadow-sm transition cursor-pointer flex flex-col justify-between"
-            >
-              <div>
-                <div className="flex items-start justify-between gap-2 mb-2">
-                  <div className="flex items-center gap-2.5">
+              return (
+                <div
+                  key={proj.id}
+                  onClick={() => setSelectedProject(proj)}
+                  className="flex items-center justify-between p-3.5 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 shadow-xs transition cursor-pointer"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
                     <div
-                      className="w-8 h-8 rounded-xl flex items-center justify-center text-white shadow-xs font-bold text-xs"
-                      style={{ backgroundColor: project.color || '#3b82f6' }}
+                      className="w-8 h-8 rounded-xl flex items-center justify-center text-white text-xs font-black shrink-0"
+                      style={{ backgroundColor: proj.color || '#3b82f6' }}
                     >
-                      {project.name.charAt(0)}
+                      {proj.name.charAt(0)}
                     </div>
-                    <div>
-                      <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition">
-                        {project.name}
+
+                    <div className="min-w-0">
+                      <h3 className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate">
+                        {proj.name}
                       </h3>
-                      <span className="text-[10px] uppercase font-semibold text-zinc-400">
-                        {project.status}
-                      </span>
+                      <p className="text-[11px] text-zinc-400 mt-0.5">
+                        {activeCount} {language === 'vi' ? 'việc đang làm' : 'active tasks'} • {totalCount} {language === 'vi' ? 'tổng số' : 'total'}
+                      </p>
                     </div>
                   </div>
 
-                  <span className="text-xs text-zinc-400 group-hover:translate-x-0.5 transition">
-                    <ArrowRight className="w-4 h-4" />
-                  </span>
+                  <ArrowRight className="w-4 h-4 text-zinc-400 shrink-0" />
                 </div>
+              );
+            })
+          )}
+        </div>
+      )}
 
-                {project.description && (
-                  <p className="text-xs text-zinc-600 dark:text-zinc-400 line-clamp-2 mb-3">
-                    {project.description}
+      {/* Ideas List View */}
+      {activeSubTab === 'ideas' && (
+        <div className="space-y-2">
+          {ideas.length === 0 ? (
+            <div className="py-12 text-center rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800 p-6 space-y-2">
+              <p className="text-xs font-medium text-zinc-500">
+                {language === 'vi' ? 'Chưa có ý tưởng nào được ghi lại.' : 'No ideas recorded yet.'}
+              </p>
+            </div>
+          ) : (
+            ideas.map((idea) => (
+              <div
+                key={idea.id}
+                className="p-3 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-xs space-y-1"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
+                    💡 {idea.title}
+                  </span>
+                  {idea.project_name && (
+                    <span className="px-1.5 py-0.2 rounded-md font-bold text-[9px] bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300">
+                      {idea.project_name}
+                    </span>
+                  )}
+                </div>
+                {idea.description && (
+                  <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
+                    {idea.description}
                   </p>
                 )}
               </div>
-
-              {/* Progress & Task Counts */}
-              <div className="space-y-2 pt-2 border-t border-zinc-100 dark:border-zinc-800">
-                <div className="flex items-center justify-between text-[11px] text-zinc-500 dark:text-zinc-400">
-                  <div className="flex items-center gap-2">
-                    <span className="font-semibold text-zinc-800 dark:text-zinc-200">
-                      {activeTasks} {t.projects.activeTasks}
-                    </span>
-                    <span>•</span>
-                    <span>{completedTasks} {t.projects.completedTasks}</span>
-                  </div>
-                  <span className="font-bold text-zinc-700 dark:text-zinc-300">
-                    {progressPercent}%
-                  </span>
-                </div>
-
-                {/* Progress bar */}
-                <div className="w-full h-1.5 rounded-full bg-zinc-100 dark:bg-zinc-800 overflow-hidden">
-                  <div
-                    className="h-full rounded-full transition-all duration-300"
-                    style={{
-                      width: `${progressPercent}%`,
-                      backgroundColor: project.color || '#3b82f6',
-                    }}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between text-[10px] text-zinc-400 pt-1">
-                  <span>{t.projects.updated} {formatRelativeTime(project.updated_at)}</span>
-                  <span>{totalTasks} {t.projects.totalTasks}</span>
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+            ))
+          )}
+        </div>
+      )}
     </div>
   );
 }

@@ -6,21 +6,19 @@ import { useI18n } from '@/lib/i18n';
 import { getLocalTimeInTimezone } from '@/lib/dateUtils';
 import { TeamManagementModal } from '../team/TeamManagementModal';
 import {
-  Moon,
-  Sun,
-  Users,
   Plus,
   ShieldCheck,
   Globe,
   LogOut,
   LogIn,
   ChevronDown,
+  Users,
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import type { User as SupabaseAuthUser } from '@supabase/supabase-js';
 
 export function Header() {
-  const { hubState, switchUser, openQuickAction } = useHub();
+  const { hubState, openQuickAction } = useHub();
   const { t, language, setLanguage } = useI18n();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [isTeamModalOpen, setIsTeamModalOpen] = useState(false);
@@ -62,86 +60,58 @@ export function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-30 bg-white/85 dark:bg-zinc-900/85 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800 transition-colors">
-        <div className="max-w-5xl mx-auto px-4 py-2.5 flex items-center justify-between gap-3">
-          {/* Left: Brand & Timezone Status */}
+      <header className="sticky top-0 z-30 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md border-b border-zinc-200/80 dark:border-zinc-800 transition-colors">
+        <div className="max-w-4xl mx-auto px-4 py-2 flex items-center justify-between gap-3">
+          {/* Left: Brand & Clocks */}
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2">
-              <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="font-extrabold text-base tracking-tight text-zinc-900 dark:text-zinc-50">
-                {t.common.hub}
-              </span>
+            <div className="flex items-center gap-1.5 font-black text-sm tracking-tight text-zinc-900 dark:text-zinc-50">
+              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span>Hub</span>
             </div>
 
-            <div className="hidden sm:block h-4 w-px bg-zinc-300 dark:bg-zinc-700" />
-
-            {/* Timezone Clocks */}
-            <div className="flex items-center gap-2 text-xs">
-              <div className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-medium">
-                <span>{currentUser.flag}</span>
-                <span className="max-w-[70px] truncate">{currentUser.name}</span>
-                <span className="font-mono font-semibold text-zinc-900 dark:text-zinc-100">
-                  {userTime.time} {userTime.period}
-                </span>
-                {userTime.isNight ? (
-                  <Moon className="w-3 h-3 text-indigo-400" />
-                ) : (
-                  <Sun className="w-3 h-3 text-amber-500" />
-                )}
-              </div>
-
+            {/* Compact Timezone */}
+            <div className="flex items-center gap-1.5 text-[11px] font-semibold text-zinc-600 dark:text-zinc-400 bg-zinc-100 dark:bg-zinc-800/80 px-2 py-0.5 rounded-lg">
+              <span>{currentUser.flag} {userTime.time}</span>
               {partnerUser.id !== currentUser.id && (
-                <div className="hidden xs:flex items-center gap-1.5 px-2 py-1 rounded-md bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
-                  <span>{partnerUser.flag}</span>
-                  <span className="max-w-[70px] truncate">{partnerUser.name}</span>
-                  <span className="font-mono font-semibold text-zinc-800 dark:text-zinc-200">
-                    {partnerTime.time} {partnerTime.period}
-                  </span>
-                  {partnerTime.isNight ? (
-                    <Moon className="w-3 h-3 text-indigo-400" />
-                  ) : (
-                    <Sun className="w-3 h-3 text-amber-500" />
-                  )}
-                </div>
+                <>
+                  <span className="text-zinc-300 dark:text-zinc-600">•</span>
+                  <span>{partnerUser.flag} {partnerTime.time}</span>
+                </>
               )}
             </div>
           </div>
 
-          {/* Right: Language Switcher + Quick Add + User / Login */}
-          <div className="flex items-center gap-2">
-            {/* Language Switcher */}
+          {/* Right: Language + Add Button + Profile */}
+          <div className="flex items-center gap-1.5">
+            {/* 1-Tap Language */}
             <button
               onClick={() => setLanguage(language === 'vi' ? 'en' : 'vi')}
-              className="flex items-center gap-1 px-2 py-1 text-xs font-bold rounded-lg bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 transition"
-              title="Toggle English / Tiếng Việt"
+              className="px-2 py-1 text-[11px] font-bold rounded-lg text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition flex items-center gap-1"
+              title="Toggle Language"
             >
               <Globe className="w-3 h-3 text-blue-500" />
               <span>{language === 'vi' ? 'VI' : 'EN'}</span>
             </button>
 
-            {/* Quick Add Button */}
+            {/* Quick Add FAB */}
             <button
               onClick={() => openQuickAction('task')}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 active:scale-95 rounded-full shadow-xs transition"
+              className="flex items-center gap-1 px-2.5 py-1 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 active:scale-95 rounded-lg shadow-xs transition"
             >
               <Plus className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">{t.common.quickAdd}</span>
+              <span className="hidden xs:inline">{t.common.quickAdd}</span>
             </button>
 
-            {/* User Profile / Login / Logout */}
+            {/* User Dropdown / Login */}
             {authUser ? (
               <div className="relative">
                 <button
                   onClick={() => setShowUserMenu(!showUserMenu)}
-                  className="flex items-center gap-1.5 pl-2 pr-2.5 py-1 rounded-full bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-zinc-200 dark:border-zinc-700 transition"
+                  className="flex items-center gap-1.5 pl-1.5 pr-2 py-0.5 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition text-xs font-semibold text-zinc-800 dark:text-zinc-200"
                 >
                   <span className="text-sm">{currentUser.avatar || '👤'}</span>
-                  <span className="text-xs font-semibold text-zinc-800 dark:text-zinc-200 max-w-[80px] truncate">
-                    {currentUser.name}
-                  </span>
-                  {isLead && (
-                    <ShieldCheck className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
-                  )}
+                  <span className="max-w-[70px] truncate">{currentUser.name}</span>
+                  {isLead && <ShieldCheck className="w-3 h-3 text-blue-600" />}
                   <ChevronDown className="w-3 h-3 text-zinc-400" />
                 </button>
 
@@ -151,79 +121,33 @@ export function Header() {
                       className="fixed inset-0 z-40"
                       onClick={() => setShowUserMenu(false)}
                     />
-                    <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-zinc-900 rounded-2xl shadow-xl border border-zinc-200 dark:border-zinc-800 py-2 z-50 text-xs">
-                      {/* User profile header */}
-                      <div className="px-3.5 py-2 border-b border-zinc-100 dark:border-zinc-800">
-                        <div className="font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
-                          <span>{currentUser.name}</span>
-                          <span
-                            className={`px-1.5 py-0.2 rounded-full text-[9px] font-bold ${
-                              isLead
-                                ? 'bg-blue-600 text-white'
-                                : 'bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300'
-                            }`}
-                          >
-                            {isLead ? t.team.roleLead : t.team.roleMember}
-                          </span>
+                    <div className="absolute right-0 mt-1.5 w-56 bg-white dark:bg-zinc-900 rounded-2xl shadow-xl border border-zinc-200 dark:border-zinc-800 py-1.5 z-50 text-xs">
+                      <div className="px-3 py-1.5 border-b border-zinc-100 dark:border-zinc-800">
+                        <div className="font-bold text-zinc-900 dark:text-zinc-100 truncate">
+                          {currentUser.name}
                         </div>
-                        <div className="text-[11px] text-zinc-400 truncate mt-0.5">
+                        <div className="text-[10px] text-zinc-400 truncate">
                           {currentUser.email}
                         </div>
                       </div>
 
-                      {/* Team management */}
                       <div className="p-1 border-b border-zinc-100 dark:border-zinc-800">
                         <button
                           onClick={() => {
                             setShowUserMenu(false);
                             setIsTeamModalOpen(true);
                           }}
-                          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-200 font-medium transition"
+                          className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-left hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-medium"
                         >
-                          <Users className="w-4 h-4 text-blue-600" />
+                          <Users className="w-3.5 h-3.5 text-blue-600" />
                           <span>{t.common.teamManagement}</span>
                         </button>
                       </div>
 
-                      {/* Member Switcher */}
-                      {hubState.users.length > 1 && (
-                        <div className="p-1 border-b border-zinc-100 dark:border-zinc-800">
-                          <div className="px-3 py-1 text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
-                            {language === 'vi' ? 'Chuyển góc nhìn' : 'Switch View'}
-                          </div>
-                          {hubState.users.map((u) => {
-                            const isSelected = u.id === currentUser.id;
-                            return (
-                              <button
-                                key={u.id}
-                                onClick={() => {
-                                  switchUser(u.id);
-                                  setShowUserMenu(false);
-                                }}
-                                className={`w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-left transition ${
-                                  isSelected
-                                    ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 font-semibold'
-                                    : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'
-                                }`}
-                              >
-                                <span className="flex items-center gap-1.5">
-                                  <span>{u.avatar || '👤'}</span>
-                                  <span>{u.name}</span>
-                                </span>
-                                {u.role === 'admin' && (
-                                  <span className="text-[9px] font-bold text-blue-500">Lead</span>
-                                )}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      )}
-
-                      {/* Sign out */}
                       <div className="p-1">
                         <button
                           onClick={handleLogout}
-                          className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-left text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 font-bold transition"
+                          className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-left text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 font-bold"
                         >
                           <LogOut className="w-3.5 h-3.5" />
                           <span>{t.common.logout}</span>
@@ -236,9 +160,9 @@ export function Header() {
             ) : (
               <a
                 href="/login"
-                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-zinc-900 dark:text-zinc-100 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 rounded-full border border-zinc-200 dark:border-zinc-700 transition"
+                className="flex items-center gap-1 px-2.5 py-1 text-xs font-bold text-blue-600 bg-blue-50 dark:bg-blue-950/40 rounded-lg hover:bg-blue-100 transition"
               >
-                <LogIn className="w-3.5 h-3.5 text-blue-600" />
+                <LogIn className="w-3.5 h-3.5" />
                 <span>{t.common.login}</span>
               </a>
             )}
@@ -246,7 +170,6 @@ export function Header() {
         </div>
       </header>
 
-      {/* Team Management Modal */}
       <TeamManagementModal
         isOpen={isTeamModalOpen}
         onClose={() => setIsTeamModalOpen(false)}

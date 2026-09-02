@@ -7,57 +7,38 @@ import {
   Home,
   CheckSquare,
   FolderKanban,
-  Activity as ActivityIcon,
-  MoreHorizontal,
-  Lightbulb,
-  BookOpen,
-  Scale,
 } from 'lucide-react';
 
 export function BottomNav() {
   const { activeTab, setActiveTab, hubState } = useHub();
-  const { t } = useI18n();
+  const { t, language } = useI18n();
 
   const attentionCount = hubState?.attention?.actionRequired?.length || 0;
-  const sinceCount = hubState?.sinceLastVisit?.total_changes || 0;
 
   const navItems = [
     {
       id: 'home' as const,
       label: t.common.home,
       icon: Home,
-      badge: sinceCount > 0 ? sinceCount : undefined,
-      badgeColor: 'bg-blue-600',
     },
     {
       id: 'work' as const,
       label: t.common.work,
       icon: CheckSquare,
       badge: attentionCount > 0 ? attentionCount : undefined,
-      badgeColor: 'bg-rose-500',
     },
     {
       id: 'projects' as const,
-      label: t.common.projects,
+      label: language === 'vi' ? 'Không gian chung' : 'Hub Space',
       icon: FolderKanban,
-    },
-    {
-      id: 'feed' as const,
-      label: t.common.feed,
-      icon: ActivityIcon,
-    },
-    {
-      id: 'more' as const,
-      label: t.common.more,
-      icon: MoreHorizontal,
     },
   ];
 
   return (
     <>
-      {/* Mobile Bottom Bar */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-lg border-t border-zinc-200 dark:border-zinc-800 safe-area-pb">
-        <div className="flex items-center justify-around h-14 px-2">
+      {/* Mobile Bottom Bar - Clean 3 Tabs */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl border-t border-zinc-200 dark:border-zinc-800 shadow-lg">
+        <div className="flex items-center justify-around h-14 max-w-md mx-auto px-4">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;
@@ -65,23 +46,21 @@ export function BottomNav() {
               <button
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
-                className={`relative flex flex-col items-center justify-center w-full h-full py-1 text-[11px] font-medium transition-colors ${
+                className={`relative flex flex-col items-center justify-center flex-1 h-full py-1 text-xs font-semibold transition-all ${
                   isActive
-                    ? 'text-blue-600 dark:text-blue-400 font-semibold'
+                    ? 'text-blue-600 dark:text-blue-400 font-bold scale-105'
                     : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
                 }`}
               >
                 <div className="relative">
                   <Icon className="w-5 h-5 mb-0.5" />
                   {item.badge !== undefined && item.badge > 0 && (
-                    <span
-                      className={`absolute -top-1 -right-2 min-w-[15px] h-[15px] px-1 text-[9px] font-bold text-white rounded-full flex items-center justify-center ${item.badgeColor}`}
-                    >
+                    <span className="absolute -top-1 -right-2 min-w-[15px] h-[15px] px-1 text-[9px] font-black text-white rounded-full flex items-center justify-center bg-rose-500">
                       {item.badge > 9 ? '9+' : item.badge}
                     </span>
                   )}
                 </div>
-                <span>{item.label}</span>
+                <span className="text-[11px] tracking-tight">{item.label}</span>
               </button>
             );
           })}
@@ -89,8 +68,8 @@ export function BottomNav() {
       </nav>
 
       {/* Desktop Sidebar (Rendered on md screens) */}
-      <aside className="hidden md:flex flex-col fixed left-0 top-12 bottom-0 w-56 border-r border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/50 p-4 z-20">
-        <div className="space-y-1">
+      <aside className="hidden md:flex flex-col fixed left-0 top-12 bottom-0 w-52 border-r border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-950/50 p-3 z-20">
+        <div className="space-y-1.5">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;
@@ -98,9 +77,9 @@ export function BottomNav() {
               <button
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
-                className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-sm font-medium transition-all ${
+                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all ${
                   isActive
-                    ? 'bg-blue-600 text-white shadow-sm font-bold'
+                    ? 'bg-blue-600 text-white shadow-xs font-bold'
                     : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200/60 dark:hover:bg-zinc-800/60'
                 }`}
               >
@@ -110,7 +89,7 @@ export function BottomNav() {
                 </div>
                 {item.badge !== undefined && item.badge > 0 && (
                   <span
-                    className={`px-1.5 py-0.5 text-[10px] font-bold rounded-full ${
+                    className={`px-1.5 py-0.5 text-[10px] font-extrabold rounded-full ${
                       isActive ? 'bg-white text-blue-600' : 'bg-rose-500 text-white'
                     }`}
                   >
@@ -120,36 +99,6 @@ export function BottomNav() {
               </button>
             );
           })}
-        </div>
-
-        {/* Quick Links in sidebar for Ideas, Knowledge, Decisions */}
-        <div className="mt-8 pt-4 border-t border-zinc-200 dark:border-zinc-800">
-          <div className="px-3 text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-wider mb-2">
-            {t.common.more}
-          </div>
-          <div className="space-y-1">
-            <button
-              onClick={() => setActiveTab('more')}
-              className="w-full flex items-center gap-3 px-3 py-1.5 rounded-lg text-xs text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200/60 dark:hover:bg-zinc-800/60"
-            >
-              <Lightbulb className="w-3.5 h-3.5 text-amber-500" />
-              <span>{t.ideas.title}</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('more')}
-              className="w-full flex items-center gap-3 px-3 py-1.5 rounded-lg text-xs text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200/60 dark:hover:bg-zinc-800/60"
-            >
-              <BookOpen className="w-3.5 h-3.5 text-emerald-500" />
-              <span>{t.knowledge.title}</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('more')}
-              className="w-full flex items-center gap-3 px-3 py-1.5 rounded-lg text-xs text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200/60 dark:hover:bg-zinc-800/60"
-            >
-              <Scale className="w-3.5 h-3.5 text-purple-500" />
-              <span>{t.decisions.title}</span>
-            </button>
-          </div>
         </div>
       </aside>
     </>
