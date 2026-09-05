@@ -15,11 +15,69 @@ export interface User {
   last_visited_at: string; // ISO 8601 UTC
 }
 
+export interface Workspace {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  owner_id: UserId;
+  role?: UserRole; // current user's role in this workspace
+  member_count?: number;
+  created_at: string;
+  updated_at?: string;
+}
+
+export interface WorkspaceMember {
+  id: string;
+  workspace_id: string;
+  user_id: UserId;
+  role: UserRole;
+  user_name?: string;
+  user_email?: string;
+  user_avatar?: string;
+  joined_at: string;
+}
+
+export type InvitationStatus = 'pending' | 'accepted' | 'declined' | 'canceled';
+
+export interface WorkspaceInvitation {
+  id: string;
+  workspace_id: string;
+  workspace_name?: string;
+  workspace?: { name: string };
+  email: string;
+  invited_by: UserId;
+  invited_by_name?: string;
+  inviter?: { name: string };
+  role: UserRole;
+  status: InvitationStatus;
+  created_at: string;
+}
+
+export type AttachmentEntityType = 'task' | 'idea' | 'project';
+
+export interface Attachment {
+  id: string;
+  workspace_id?: string | null;
+  entity_type: AttachmentEntityType;
+  entity_id: string;
+  file_name: string;
+  file_size: number;
+  file_type: string;
+  file_url: string;
+  storage_path: string;
+  uploaded_by: UserId;
+  uploader_name?: string;
+  uploader_avatar?: string;
+  created_at: string;
+}
+
 export type TaskStatus = 'inbox' | 'todo' | 'in_progress' | 'done';
 export type TaskPriority = 'urgent' | 'high' | 'medium' | 'low';
 
 export interface Task {
   id: string;
+  workspace_id?: string | null;
   title: string;
   description: string;
   project_id: string | null;
@@ -35,12 +93,15 @@ export interface Task {
   creator_name?: string;
   assignee_name?: string;
   comment_count?: number;
+  attachment_count?: number;
+  attachments?: Attachment[];
 }
 
 export type ProjectStatus = 'active' | 'paused' | 'archived';
 
 export interface Project {
   id: string;
+  workspace_id?: string | null;
   name: string;
   description: string;
   color: string;
@@ -51,12 +112,15 @@ export interface Project {
   total_tasks?: number;
   completed_tasks?: number;
   active_tasks?: number;
+  attachment_count?: number;
+  attachments?: Attachment[];
 }
 
 export type IdeaStatus = 'idea' | 'maybe' | 'planned' | 'converted';
 
 export interface Idea {
   id: string;
+  workspace_id?: string | null;
   title: string;
   description: string;
   status: IdeaStatus;
@@ -66,12 +130,15 @@ export interface Idea {
   updated_at: string;
   project_name?: string;
   creator_name?: string;
+  attachment_count?: number;
+  attachments?: Attachment[];
 }
 
 export type KnowledgeStatus = 'to_learn' | 'learning' | 'mastered';
 
 export interface Knowledge {
   id: string;
+  workspace_id?: string | null;
   topic: string;
   notes: string;
   status: KnowledgeStatus;
@@ -85,6 +152,7 @@ export interface Knowledge {
 
 export interface Decision {
   id: string;
+  workspace_id?: string | null;
   title: string;
   reason: string;
   project_id: string | null;
@@ -98,6 +166,7 @@ export type EntityType = 'task' | 'project' | 'idea' | 'knowledge' | 'decision' 
 
 export interface Comment {
   id: string;
+  workspace_id?: string | null;
   entity_type: EntityType;
   entity_id: string;
   user_id: UserId;
@@ -119,6 +188,7 @@ export type ActionType =
 
 export interface Activity {
   id: string;
+  workspace_id?: string | null;
   actor_id: UserId;
   target_user_id: UserId | null;
   entity_type: EntityType;
@@ -156,7 +226,6 @@ export interface AttentionItem {
 
 export interface HubState {
   currentUser: User;
-  partnerUser: User;
   users: User[];
   projects: Project[];
   tasks: Task[];
@@ -170,6 +239,11 @@ export interface HubState {
     actionRequired: AttentionItem[];
     waiting: AttentionItem[];
   };
+  // Multi-Workspace Fields
+  activeWorkspace?: Workspace | null;
+  workspaces: Workspace[];
+  pendingInvitations: WorkspaceInvitation[];
+  workspaceMembers?: WorkspaceMember[];
 }
 
 export type NotificationChannel = 'zalo' | 'slack' | 'discord' | 'telegram' | 'messenger' | 'email';
@@ -212,4 +286,3 @@ export interface DigestPayload {
   newTasks: Task[];
   appUrl?: string;
 }
-

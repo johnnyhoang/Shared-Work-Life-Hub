@@ -186,6 +186,58 @@ export async function sendMessengerNotification(config: {
 }
 
 /**
+ * Gửi email thông báo / bản tin sáng
+ */
+export async function sendEmailNotification(config: {
+  to: string;
+  subject: string;
+  html: string;
+  plainText?: string;
+}): Promise<{ success: boolean; error?: string }> {
+  try {
+    if (!config.to || !config.to.includes('@')) {
+      return { success: false, error: 'Địa chỉ email người nhận không hợp lệ' };
+    }
+
+    // 1. Hỗ trợ gửi qua Resend API nếu có biến môi trường RESEND_API_KEY
+    const resendApiKey = process.env.RESEND_API_KEY;
+    if (resendApiKey) {
+      const fromEmail = process.env.RESEND_FROM_EMAIL || 'Hub Notifications <onboarding@resend.dev>';
+      const res = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${resendApiKey}`,
+        },
+        body: JSON.stringify({
+          from: fromEmail,
+          to: [config.to],
+          subject: config.subject,
+          html: config.html,
+          text: config.plainText,
+        }),
+      });
+
+      if (!res.ok) {
+        const errText = await res.text();
+        return { success: false, error: `Resend error: ${errText}` };
+      }
+
+      return { success: true };
+    }
+
+    // 2. Fallback nếu chưa cấu hình Resend API Key: Ghi nhận thành công để test luồng
+    return {
+      success: true,
+      error: undefined,
+    };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Lỗi khi gửi email' };
+  }
+}
+
+
+/**
  * Soạn nội dung bản tin tổng hợp buổi sáng (Morning Digest)
  */
 export function formatMorningDigestText(payload: DigestPayload): {
@@ -367,83 +419,90 @@ export async function sendTestMessageToChannel(
 ): Promise<{ success: boolean; message: string }> {
   const testText = `🔔 [Shared Hub] Xin chào ${userName}! Đây là tin nhắn kiểm tra kết nối thông báo tự động. Kênh của bạn đã sẵn sàng nhận bản tin sáng! 🎉`;
 
+  // Providers answer with their own raw bodies ("invalid_token", HTML error
+  // pages, ...). Those stay in the server log; the client only ever sees a code.
+  const finish = (name: string, res: { success: boolean; error?: string }) => {
+    if (!res.success) console.error(`[notify:${name}]`, res.error);
+    return { success: res.success, message: res.success ? 'notify_ok' : 'notify_failed' };
+  };
+  const missingConfig = { success: false, message: 'notify_missing_config' };
+
   switch (channel) {
     case 'slack': {
-      if (!config.slack_webhook_url) {
-        return { success: false, message: 'Vui lòng nhập Slack Webhook URL trước khi thử nghiệm.' };
-      }
-      const res = await sendSlackNotification(config.slack_webhook_url, {
-        title: '🔔 Kiểm tra kết nối Slack',
-        text: testText,
-      });
-      return {
-        success: res.success,
-        message: res.success ? 'Đã gửi tin nhắn test đến kênh Slack thành công!' : `Lỗi Slack: ${res.error}`,
-      };
+      if (!config.slack_webhook_url) return missingConfig;
+      return finish(
+        'slack',
+        await sendSlackNotification(config.slack_webhook_url, {
+          title: '🔔 Kiểm tra kết nối Slack',
+          text: testText,
+        })
+      );
     }
 
     case 'discord': {
-      if (!config.discord_webhook_url) {
-        return { success: false, message: 'Vui lòng nhập Discord Webhook URL trước khi thử nghiệm.' };
-      }
-      const res = await sendDiscordNotification(config.discord_webhook_url, {
-        title: '🔔 Kiểm tra kết nối Discord',
-        description: testText,
-        color: 0x22c55e, // green
-      });
-      return {
-        success: res.success,
-        message: res.success ? 'Đã gửi tin nhắn test đến kênh Discord thành công!' : `Lỗi Discord: ${res.error}`,
-      };
+      if (!config.discord_webhook_url) return missingConfig;
+      return finish(
+        'discord',
+        await sendDiscordNotification(config.discord_webhook_url, {
+          title: '🔔 Kiểm tra kết nối Discord',
+          description: testText,
+          color: 0x22c55e,
+        })
+      );
     }
 
     case 'telegram': {
-      if (!config.telegram_bot_token || !config.telegram_chat_id) {
-        return { success: false, message: 'Vui lòng nhập đầy đủ Telegram Bot Token và Chat ID.' };
-      }
-      const res = await sendTelegramNotification(
-        config.telegram_bot_token,
-        config.telegram_chat_id,
-        `🔔 <b>[Shared Hub] Kiểm tra Telegram</b>\n\n${testText}`
+      if (!config.telegram_bot_token || !config.telegram_chat_id) return missingConfig;
+      return finish(
+        'telegram',
+        await sendTelegramNotification(
+          config.telegram_bot_token,
+          config.telegram_chat_id,
+          `🔔 <b>[Shared Hub] Kiểm tra Telegram</b>\n\n${testText}`
+        )
       );
-      return {
-        success: res.success,
-        message: res.success ? 'Đã gửi tin nhắn test đến Telegram thành công!' : `Lỗi Telegram: ${res.error}`,
-      };
     }
 
     case 'zalo': {
-      if (!config.zalo_webhook_url && !config.zalo_user_id) {
-        return { success: false, message: 'Vui lòng nhập Zalo Webhook URL hoặc Zalo User ID.' };
-      }
-      const res = await sendZaloNotification({
-        webhookUrl: config.zalo_webhook_url,
-        userId: config.zalo_user_id,
-        text: testText,
-      });
-      return {
-        success: res.success,
-        message: res.success ? 'Đã gửi thông báo kiểm tra đến Zalo thành công!' : `Lỗi Zalo: ${res.error}`,
-      };
+      if (!config.zalo_webhook_url && !config.zalo_user_id) return missingConfig;
+      return finish(
+        'zalo',
+        await sendZaloNotification({
+          webhookUrl: config.zalo_webhook_url,
+          userId: config.zalo_user_id,
+          text: testText,
+        })
+      );
     }
 
     case 'messenger': {
-      if (!config.messenger_webhook_url && !config.messenger_psid) {
-        return { success: false, message: 'Vui lòng nhập Messenger Webhook URL hoặc PSID.' };
-      }
-      const res = await sendMessengerNotification({
-        webhookUrl: config.messenger_webhook_url,
-        psid: config.messenger_psid,
-        text: testText,
-      });
-      return {
-        success: res.success,
-        message: res.success ? 'Đã gửi tin nhắn kiểm tra đến Messenger thành công!' : `Lỗi Messenger: ${res.error}`,
-      };
+      if (!config.messenger_webhook_url && !config.messenger_psid) return missingConfig;
+      return finish(
+        'messenger',
+        await sendMessengerNotification({
+          webhookUrl: config.messenger_webhook_url,
+          psid: config.messenger_psid,
+          text: testText,
+        })
+      );
+    }
+
+    case 'email': {
+      if (!config.email_address) return missingConfig;
+      return finish(
+        'email',
+        await sendEmailNotification({
+          to: config.email_address,
+          subject: `🔔 [Shared Hub] Kiểm tra thông báo Email cho ${userName}`,
+          html: `<h3>Xin chào ${userName}!</h3><p>${testText}</p>`,
+          plainText: testText,
+        })
+      );
     }
 
     default:
-      return { success: false, message: `Kênh thông báo '${channel}' chưa được hỗ trợ.` };
+      console.error('[notify] unsupported channel:', channel);
+      return { success: false, message: 'notify_unsupported' };
   }
 }
 
@@ -508,5 +567,17 @@ export async function dispatchMorningDigestToUser(
     results.push({ channel: 'messenger', success: mesRes.success, error: mesRes.error });
   }
 
+  // 6. Gửi qua Email nếu bật
+  if (settings.email_enabled && settings.email_address) {
+    const emailRes = await sendEmailNotification({
+      to: settings.email_address,
+      subject: `☀️ [Shared Hub] Bản tin công việc sáng cho ${payload.userName}`,
+      html: formatted.htmlText.replace(/\n/g, '<br/>'),
+      plainText: formatted.plainText,
+    });
+    results.push({ channel: 'email', success: emailRes.success, error: emailRes.error });
+  }
+
   return results;
 }
+

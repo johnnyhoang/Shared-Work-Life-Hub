@@ -22,6 +22,6 @@ export async function PATCH(
     return NextResponse.json(idea);
   } catch (error) {
     console.error('Failed to update idea:', error);
-    return NextResponse.json({ error: 'Failed to update idea' }, { status: 500 });
+    return NextResponse.json({ error: 'save_failed' }, { status: 500 });
   }
 }

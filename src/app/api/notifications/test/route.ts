@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
     const { channel, config, userName } = body;
 
     if (!channel) {
-      return NextResponse.json({ error: 'Channel is required' }, { status: 400 });
+      return NextResponse.json({ error: 'invalid_request' }, { status: 400 });
     }
 
     const result = await sendTestMessageToChannel(
@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('Test notification failed:', error);
     return NextResponse.json(
-      { success: false, message: error.message || 'Gửi thông báo test thất bại' },
+      { success: false, message: 'notify_failed' },
       { status: 500 }
     );
   }

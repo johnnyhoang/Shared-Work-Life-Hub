@@ -8,12 +8,12 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { userId } = body;
     if (!userId) {
-      return NextResponse.json({ error: 'userId is required' }, { status: 400 });
+      return NextResponse.json({ error: 'invalid_request' }, { status: 400 });
     }
     await updateLastVisitedSupabase(userId);
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Failed to update last visited:', error);
-    return NextResponse.json({ error: 'Failed to update last visited' }, { status: 500 });
+    return NextResponse.json({ error: 'save_failed' }, { status: 500 });
   }
 }

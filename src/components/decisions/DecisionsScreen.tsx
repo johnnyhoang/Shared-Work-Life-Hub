@@ -78,7 +78,7 @@ export function DecisionsScreen() {
             <select
               value={selectedProjectId}
               onChange={(e) => setSelectedProjectId(e.target.value)}
-              className="px-2 py-1 text-xs rounded-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300"
+              className="px-2 py-1 text-xs rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300"
             >
               <option value="">{t.common.noProject}</option>
               {hubState.projects.map((p) => (
@@ -99,7 +99,7 @@ export function DecisionsScreen() {
               <button
                 type="submit"
                 disabled={!newTitle.trim() || !newReason.trim()}
-                className="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold rounded-lg shadow-xs"
+                className="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold rounded-xl shadow-xs"
               >
                 {t.decisions.saveDecision}
               </button>
@@ -122,7 +122,7 @@ export function DecisionsScreen() {
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-lg bg-purple-100 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0">
+                  <div className="w-6 h-6 rounded-xl bg-purple-100 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0">
                     <Scale className="w-3.5 h-3.5" />
                   </div>
                   <h3 className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
@@ -130,22 +130,22 @@ export function DecisionsScreen() {
                   </h3>
                 </div>
 
-                <span className="text-[10px] text-zinc-400 shrink-0">
+                <span className="text-xs text-zinc-400 shrink-0">
                   {formatRelativeTime(decision.created_at)}
                 </span>
               </div>
 
               <div className="pl-8">
                 <div className="text-xs text-zinc-600 dark:text-zinc-300 bg-zinc-50 dark:bg-zinc-800/60 p-3 rounded-xl border border-zinc-100 dark:border-zinc-800">
-                  <span className="font-semibold text-zinc-500 dark:text-zinc-400 block mb-0.5 text-[10px] uppercase">
+                  <span className="font-semibold text-zinc-500 dark:text-zinc-400 block mb-0.5 text-xs uppercase">
                     {t.decisions.reasonLabel}
                   </span>
                   {decision.reason}
                 </div>
 
-                <div className="flex items-center gap-2 mt-2 text-[11px] text-zinc-400">
+                <div className="flex items-center gap-2 mt-2 text-xs text-zinc-400">
                   {decision.project_name && (
-                    <span className="px-1.5 py-0.5 rounded-md font-medium text-[10px] bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300">
+                    <span className="px-1.5 py-0.5 rounded-full font-medium text-xs bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300">
                       {decision.project_name}
                     </span>
                   )}

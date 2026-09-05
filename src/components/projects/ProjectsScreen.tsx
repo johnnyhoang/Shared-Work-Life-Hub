@@ -4,8 +4,10 @@ import React, { useState } from 'react';
 import { useHub } from '@/context/HubContext';
 import { useI18n } from '@/lib/i18n';
 import { GitHubImportModal } from './GitHubImportModal';
+import { usePromptText } from '../common/ConfirmProvider';
 import {
   FolderKanban,
+  FolderPlus,
   Lightbulb,
   Plus,
   ArrowRight,
@@ -18,7 +20,8 @@ export function ProjectsScreen() {
     createProject,
     openQuickAction,
   } = useHub();
-  const { t, language } = useI18n();
+  const { t } = useI18n();
+  const promptText = usePromptText();
 
   const [activeSubTab, setActiveSubTab] = useState<'projects' | 'ideas'>('projects');
   const [isGitHubModalOpen, setIsGitHubModalOpen] = useState(false);
@@ -27,12 +30,17 @@ export function ProjectsScreen() {
 
   const { projects, ideas } = hubState;
 
-  const handleAddProject = () => {
-    const name = prompt(language === 'vi' ? 'Tên dự án mới:' : 'New Project Name:');
-    if (name && name.trim()) {
-      createProject({
-        name: name.trim(),
-      });
+  const handleAddProject = async () => {
+    const name = await promptText({
+      title: t.dialog.newProjectTitle,
+      label: t.dialog.newProjectLabel,
+      placeholder: t.dialog.newProjectPlaceholder,
+      confirmLabel: t.dialog.newProjectConfirm,
+      tone: 'default',
+      icon: FolderPlus,
+    });
+    if (name) {
+      createProject({ name });
     }
   };
 
@@ -43,12 +51,10 @@ export function ProjectsScreen() {
         <div className="flex items-center justify-between gap-3 pt-2">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
-              {language === 'vi' ? 'Không gian chung' : 'Hub Space'}
+              {t.projects.hubSpaceTitle}
             </h1>
             <p className="text-sm sm:text-base text-zinc-500 dark:text-zinc-400 mt-0.5">
-              {language === 'vi'
-                ? 'Dự án, ý tưởng & ghi chú làm việc của Team'
-                : 'Projects, ideas & notes for collaboration'}
+              {t.projects.hubSpaceSubtitle}
             </p>
           </div>
 
@@ -62,7 +68,7 @@ export function ProjectsScreen() {
               <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
                 <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
               </svg>
-              <span>{language === 'vi' ? 'Import GitHub' : 'GitHub'}</span>
+              <span>{t.projects.importGitHubShort}</span>
             </button>
 
             {/* Standard Add Button */}
@@ -113,16 +119,16 @@ export function ProjectsScreen() {
         {activeSubTab === 'projects' && (
           <div className="space-y-3">
             {projects.length === 0 ? (
-              <div className="py-14 text-center rounded-3xl border border-dashed border-zinc-200 dark:border-zinc-800 p-8 space-y-3">
+              <div className="py-14 text-center rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800 p-8 space-y-3">
                 <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
-                  {language === 'vi' ? 'Chưa có dự án nào.' : 'No projects yet.'}
+                  {t.projects.emptyProjects}
                 </p>
                 <div className="flex justify-center gap-2">
                   <button
                     onClick={() => setIsGitHubModalOpen(true)}
                     className="px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-zinc-900 dark:bg-zinc-700 hover:bg-black rounded-2xl shadow-xs transition"
                   >
-                    {language === 'vi' ? 'Import từ GitHub' : 'Import from GitHub'}
+                    {t.projects.importFromGitHub}
                   </button>
                   <button
                     onClick={handleAddProject}
@@ -142,7 +148,7 @@ export function ProjectsScreen() {
                   <div
                     key={proj.id}
                     onClick={() => setSelectedProject(proj)}
-                    className="flex items-center justify-between p-4 rounded-3xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 shadow-xs transition cursor-pointer"
+                    className="flex items-center justify-between p-4 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 shadow-xs transition cursor-pointer"
                   >
                     <div className="flex items-center gap-3.5 min-w-0">
                       <div
@@ -164,13 +170,13 @@ export function ProjectsScreen() {
                             {proj.name}
                           </h3>
                           {isGitHub && (
-                            <span className="px-1.5 py-0.2 rounded-md bg-zinc-100 dark:bg-zinc-800 text-[10px] font-bold text-zinc-600 dark:text-zinc-300">
+                            <span className="px-1.5 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-xs font-bold text-zinc-600 dark:text-zinc-300">
                               GitHub
                             </span>
                           )}
                         </div>
                         <p className="text-xs text-zinc-400 mt-0.5">
-                          {activeCount} {language === 'vi' ? 'việc đang làm' : 'active tasks'} • {totalCount} {language === 'vi' ? 'tổng số việc' : 'total tasks'}
+                          {activeCount} {t.projects.activeTasksLabel} • {totalCount} {t.projects.totalTasksLabel}
                         </p>
                       </div>
                     </div>
@@ -187,23 +193,23 @@ export function ProjectsScreen() {
         {activeSubTab === 'ideas' && (
           <div className="space-y-2.5">
             {ideas.length === 0 ? (
-              <div className="py-14 text-center rounded-3xl border border-dashed border-zinc-200 dark:border-zinc-800 p-8 space-y-2">
+              <div className="py-14 text-center rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800 p-8 space-y-2">
                 <p className="text-sm font-bold text-zinc-600 dark:text-zinc-400">
-                  {language === 'vi' ? 'Chưa có ý tưởng nào được ghi lại.' : 'No ideas recorded yet.'}
+                  {t.projects.emptyIdeas}
                 </p>
               </div>
             ) : (
               ideas.map((idea) => (
                 <div
                   key={idea.id}
-                  className="p-4 rounded-3xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-xs space-y-1.5"
+                  className="p-4 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-xs space-y-1.5"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <span className="text-sm sm:text-base font-bold text-zinc-900 dark:text-zinc-100">
                       💡 {idea.title}
                     </span>
                     {idea.project_name && (
-                      <span className="px-2 py-0.5 rounded-md font-bold text-xs bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300">
+                      <span className="px-2 py-0.5 rounded-full font-bold text-xs bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300">
                         {idea.project_name}
                       </span>
                     )}

@@ -9,6 +9,6 @@ export async function GET(_request: NextRequest) {
     return NextResponse.json(activities);
   } catch (error) {
     console.error('Failed to get activities:', error);
-    return NextResponse.json({ error: 'Failed to fetch activities' }, { status: 500 });
+    return NextResponse.json({ error: 'fetch_failed' }, { status: 500 });
   }
 }

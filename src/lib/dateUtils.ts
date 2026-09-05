@@ -62,36 +62,3 @@ export function formatDueDate(dateString: string | null): { text: string; isOver
     return { text: dateString, isOverdue: false, isToday: false };
   }
 }
-
-export function getLocalTimeInTimezone(timezone: string): { time: string; period: string; isNight: boolean } {
-  try {
-    const now = new Date();
-    const formatter = new Intl.DateTimeFormat('en-US', {
-      timeZone: timezone,
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-    });
-    
-    const parts = formatter.formatToParts(now);
-    const hourPart = parts.find((p) => p.type === 'hour')?.value || '12';
-    const minutePart = parts.find((p) => p.type === 'minute')?.value || '00';
-    const dayPeriod = parts.find((p) => p.type === 'dayPeriod')?.value || 'AM';
-
-    const hour24Formatter = new Intl.DateTimeFormat('en-US', {
-      timeZone: timezone,
-      hour: 'numeric',
-      hour12: false,
-    });
-    const hour24 = parseInt(hour24Formatter.format(now), 10);
-    const isNight = hour24 < 7 || hour24 >= 22;
-
-    return {
-      time: `${hourPart}:${minutePart}`,
-      period: dayPeriod,
-      isNight,
-    };
-  } catch {
-    return { time: '--:--', period: '', isNight: false };
-  }
-}

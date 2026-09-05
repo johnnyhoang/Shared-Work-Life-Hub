@@ -9,7 +9,7 @@ export async function GET(_request: NextRequest) {
     return NextResponse.json(ideas);
   } catch (error) {
     console.error('Failed to get ideas:', error);
-    return NextResponse.json({ error: 'Failed to fetch ideas' }, { status: 500 });
+    return NextResponse.json({ error: 'fetch_failed' }, { status: 500 });
   }
 }
 
@@ -20,6 +20,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(idea, { status: 201 });
   } catch (error) {
     console.error('Failed to create idea:', error);
-    return NextResponse.json({ error: 'Failed to create idea' }, { status: 500 });
+    return NextResponse.json({ error: 'save_failed' }, { status: 500 });
   }
 }

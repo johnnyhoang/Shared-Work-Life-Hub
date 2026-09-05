@@ -29,7 +29,7 @@ async function handleMorningDigest(request: NextRequest) {
       const isValid =
         authHeader === `Bearer ${cronSecret}` || secretParam === cronSecret;
       if (!isValid) {
-        return NextResponse.json({ error: 'Unauthorized cron trigger' }, { status: 401 });
+        return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
       }
     }
 
@@ -52,7 +52,9 @@ async function handleMorningDigest(request: NextRequest) {
         (settings.slack_enabled && settings.slack_webhook_url) ||
         (settings.discord_enabled && settings.discord_webhook_url) ||
         (settings.telegram_enabled && settings.telegram_bot_token && settings.telegram_chat_id) ||
-        (settings.messenger_enabled && (settings.messenger_webhook_url || settings.messenger_psid));
+        (settings.messenger_enabled && (settings.messenger_webhook_url || settings.messenger_psid)) ||
+        (settings.email_enabled && (settings.email_address || user.email));
+
 
       if (!hasAnyChannel) {
         continue;
@@ -95,7 +97,7 @@ async function handleMorningDigest(request: NextRequest) {
   } catch (error: any) {
     console.error('Morning digest cron error:', error);
     return NextResponse.json(
-      { success: false, error: error.message || 'Lỗi khi chạy Morning Digest Cron' },
+      { success: false, error: 'unknown' },
       { status: 500 }
     );
   }

@@ -15,6 +15,9 @@ import {
   IdeaStatus,
   KnowledgeStatus,
   EntityType,
+  Workspace,
+  WorkspaceMember,
+  WorkspaceInvitation,
 } from '@/types';
 
 type NavigationTab = 'home' | 'work' | 'projects' | 'feed' | 'more';
@@ -23,10 +26,22 @@ type QuickActionType = 'task' | 'idea' | 'decision' | 'knowledge';
 interface HubContextType {
   hubState: HubState | null;
   isLoading: boolean;
-  activeUserId: string;
-  switchUser: (userId: string) => void;
-  refreshHub: () => Promise<void>;
+  refreshHub: (explicitWorkspaceId?: string) => Promise<void>;
   markVisited: () => Promise<void>;
+
+  // Workspace Actions & State
+  activeWorkspace: Workspace | null;
+  workspaces: Workspace[];
+  pendingInvitations: WorkspaceInvitation[];
+  workspaceMembers: WorkspaceMember[];
+  isWorkspaceAdmin: boolean;
+  switchWorkspace: (workspaceId: string) => Promise<void>;
+  /** `error` is an ApiErrorCode; render it via errorText(t.errors, error). */
+  createWorkspace: (name: string, description?: string) => Promise<{ success: boolean; workspace?: Workspace; error?: string }>;
+  inviteMember: (email: string, role?: 'admin' | 'member') => Promise<{ success: boolean; error?: string }>;
+  respondInvitation: (invitationId: string, action: 'accept' | 'decline') => Promise<boolean>;
+  removeMember: (memberId: string) => Promise<boolean>;
+  updateMemberRole: (memberId: string, role: 'admin' | 'member') => Promise<boolean>;
 
   // Navigation
   activeTab: NavigationTab;
@@ -37,6 +52,10 @@ interface HubContextType {
   quickActionInitialType: QuickActionType;
   openQuickAction: (type?: QuickActionType) => void;
   closeQuickAction: () => void;
+
+  isCreateWorkspaceOpen: boolean;
+  openCreateWorkspace: () => void;
+  closeCreateWorkspace: () => void;
 
   selectedTask: Task | null;
   setSelectedTask: (task: Task | null) => void;
@@ -102,7 +121,6 @@ interface HubContextType {
 const HubContext = createContext<HubContextType | undefined>(undefined);
 
 export function HubProvider({ children }: { children: React.ReactNode }) {
-  const [activeUserId, setActiveUserId] = useState<string>('');
   const [hubState, setHubState] = useState<HubState | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [activeTab, setActiveTab] = useState<NavigationTab>('home');
@@ -110,23 +128,33 @@ export function HubProvider({ children }: { children: React.ReactNode }) {
   // Modal states
   const [isQuickActionOpen, setIsQuickActionOpen] = useState<boolean>(false);
   const [quickActionInitialType, setQuickActionInitialType] = useState<QuickActionType>('task');
+  const [isCreateWorkspaceOpen, setIsCreateWorkspaceOpen] = useState<boolean>(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
-  const refreshHub = useCallback(async () => {
+  const openCreateWorkspace = () => setIsCreateWorkspaceOpen(true);
+  const closeCreateWorkspace = () => setIsCreateWorkspaceOpen(false);
+
+  const refreshHub = useCallback(async (explicitWorkspaceId?: string) => {
     if (typeof window !== 'undefined' && window.location.pathname === '/login') {
       setIsLoading(false);
       return;
     }
     try {
-      const res = await fetch('/api/hub');
+      let targetWorkspaceId = explicitWorkspaceId;
+      if (!targetWorkspaceId && typeof window !== 'undefined') {
+        targetWorkspaceId = localStorage.getItem('sw_active_workspace_id') || undefined;
+      }
+
+      const query = targetWorkspaceId ? `?workspaceId=${encodeURIComponent(targetWorkspaceId)}` : '';
+      const res = await fetch(`/api/hub${query}`);
       if (res.ok) {
         const contentType = res.headers.get('content-type');
         if (contentType && contentType.includes('application/json')) {
           const data: HubState = await res.json();
           setHubState(data);
-          if (!activeUserId && data.currentUser) {
-            setActiveUserId(data.currentUser.id);
+          if (data.activeWorkspace?.id && typeof window !== 'undefined') {
+            localStorage.setItem('sw_active_workspace_id', data.activeWorkspace.id);
           }
         }
       }
@@ -135,17 +163,144 @@ export function HubProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  }, [activeUserId]);
+  }, []);
 
   useEffect(() => {
     refreshHub();
   }, [refreshHub]);
 
-  const currentUserId = hubState?.currentUser?.id || activeUserId;
+  const currentUserId = hubState?.currentUser?.id || '';
+  const activeWorkspace = hubState?.activeWorkspace || null;
+  const workspaces = hubState?.workspaces || [];
+  const pendingInvitations = hubState?.pendingInvitations || [];
+  const workspaceMembers = hubState?.workspaceMembers || [];
 
-  const switchUser = (userId: string) => {
-    setActiveUserId(userId);
-    localStorage.setItem('hub_active_user', userId);
+  // Determine if the current user is an admin of the active workspace
+  const currentMember = workspaceMembers.find(m => m.user_id === currentUserId);
+  const isWorkspaceAdmin = 
+    activeWorkspace?.owner_id === currentUserId || 
+    currentMember?.role === 'admin' || 
+    hubState?.currentUser?.role === 'admin';
+
+  const switchWorkspace = async (workspaceId: string) => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('sw_active_workspace_id', workspaceId);
+    }
+    setIsLoading(true);
+    await refreshHub(workspaceId);
+  };
+
+  const createWorkspace = async (
+    name: string,
+    description?: string
+  ): Promise<{ success: boolean; workspace?: Workspace; error?: string }> => {
+    try {
+      const res = await fetch('/api/workspaces', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, description }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        return { success: false, error: data.error || 'workspace_create_failed' };
+      }
+      const created: Workspace = data;
+      await switchWorkspace(created.id);
+      return { success: true, workspace: created };
+    } catch (err: any) {
+      console.error('Failed to create workspace:', err);
+      return { success: false, error: 'network' };
+    }
+  };
+
+  const inviteMember = async (email: string, role: 'admin' | 'member' = 'member'): Promise<{ success: boolean; error?: string }> => {
+    if (!activeWorkspace) return { success: false, error: 'not_found' };
+    try {
+      const res = await fetch('/api/workspaces/invitations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          workspace_id: activeWorkspace.id,
+          email,
+          role,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        return { success: false, error: data.error || 'invite_failed' };
+      }
+      await refreshHub();
+      return { success: true };
+    } catch (err: any) {
+      console.error('Failed to invite member:', err);
+      return { success: false, error: 'network' };
+    }
+  };
+
+  const respondInvitation = async (invitationId: string, action: 'accept' | 'decline'): Promise<boolean> => {
+    try {
+      const res = await fetch(`/api/workspaces/invitations/${invitationId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action }),
+      });
+      if (!res.ok) return false;
+      const data = await res.json();
+      if (action === 'accept' && data.invitation?.workspace_id) {
+        await switchWorkspace(data.invitation.workspace_id);
+      } else {
+        await refreshHub();
+      }
+      return true;
+    } catch (err) {
+      console.error('Failed to respond to invitation:', err);
+      return false;
+    }
+  };
+
+  const removeMember = async (memberId: string): Promise<boolean> => {
+    if (!activeWorkspace) return false;
+    try {
+      const res = await fetch('/api/workspaces/members', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          workspace_id: activeWorkspace.id,
+          member_id: memberId,
+        }),
+      });
+      if (res.ok) {
+        await refreshHub();
+        return true;
+      }
+      return false;
+    } catch (err) {
+      console.error('Failed to remove member:', err);
+      return false;
+    }
+  };
+
+  const updateMemberRole = async (memberId: string, role: 'admin' | 'member'): Promise<boolean> => {
+    if (!activeWorkspace) return false;
+    try {
+      const res = await fetch('/api/workspaces/members', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          workspace_id: activeWorkspace.id,
+          member_id: memberId,
+          role,
+        }),
+      });
+      if (res.ok) {
+        await refreshHub();
+        return true;
+      }
+      return false;
+    } catch (err) {
+      console.error('Failed to update member role:', err);
+      return false;
+    }
   };
 
   const markVisited = async () => {
@@ -188,6 +343,7 @@ export function HubProvider({ children }: { children: React.ReactNode }) {
         body: JSON.stringify({
           ...params,
           creator_id: currentUserId,
+          workspace_id: activeWorkspace?.id || null,
         }),
       });
       if (!res.ok) return null;
@@ -262,6 +418,7 @@ export function HubProvider({ children }: { children: React.ReactNode }) {
         body: JSON.stringify({
           ...params,
           actor_id: currentUserId,
+          workspace_id: activeWorkspace?.id || null,
         }),
       });
       if (!res.ok) return null;
@@ -311,6 +468,7 @@ export function HubProvider({ children }: { children: React.ReactNode }) {
         body: JSON.stringify({
           ...params,
           creator_id: currentUserId,
+          workspace_id: activeWorkspace?.id || null,
         }),
       });
       if (!res.ok) return null;
@@ -378,6 +536,7 @@ export function HubProvider({ children }: { children: React.ReactNode }) {
         body: JSON.stringify({
           ...params,
           user_id: currentUserId,
+          workspace_id: activeWorkspace?.id || null,
         }),
       });
       if (!res.ok) return null;
@@ -420,6 +579,7 @@ export function HubProvider({ children }: { children: React.ReactNode }) {
         body: JSON.stringify({
           ...params,
           created_by_id: currentUserId,
+          workspace_id: activeWorkspace?.id || null,
         }),
       });
       if (!res.ok) return null;
@@ -479,16 +639,28 @@ export function HubProvider({ children }: { children: React.ReactNode }) {
       value={{
         hubState,
         isLoading,
-        activeUserId: currentUserId,
-        switchUser,
         refreshHub,
         markVisited,
+        activeWorkspace,
+        workspaces,
+        pendingInvitations,
+        workspaceMembers,
+        isWorkspaceAdmin,
+        switchWorkspace,
+        createWorkspace,
+        inviteMember,
+        respondInvitation,
+        removeMember,
+        updateMemberRole,
         activeTab,
         setActiveTab,
         isQuickActionOpen,
         quickActionInitialType,
         openQuickAction,
         closeQuickAction,
+        isCreateWorkspaceOpen,
+        openCreateWorkspace,
+        closeCreateWorkspace,
         selectedTask,
         setSelectedTask,
         selectedProject,
@@ -521,3 +693,4 @@ export function useHub() {
   }
   return context;
 }
+

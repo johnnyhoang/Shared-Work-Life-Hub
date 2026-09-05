@@ -5,6 +5,9 @@ import { useHub } from '@/context/HubContext';
 import { useI18n } from '@/lib/i18n';
 import { Task, TaskPriority, TaskStatus, Comment } from '@/types';
 import { formatRelativeTime } from '@/lib/dateUtils';
+import { UserAvatar } from '../common/UserAvatar';
+import { AttachmentGallery } from '../common/AttachmentGallery';
+import { useConfirm } from '../common/ConfirmProvider';
 import {
   X,
   Trash2,
@@ -22,7 +25,8 @@ export function TaskDetailModal() {
     fetchComments,
     addComment,
   } = useHub();
-  const { t, language } = useI18n();
+  const { t } = useI18n();
+  const confirm = useConfirm();
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -86,7 +90,7 @@ export function TaskDetailModal() {
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-xs">
       <div
-        className="w-full max-w-lg max-h-[90vh] bg-white dark:bg-zinc-900 rounded-t-3xl sm:rounded-3xl shadow-2xl border border-zinc-200 dark:border-zinc-800 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-6 duration-200"
+        className="w-full max-w-lg max-h-[90vh] bg-white dark:bg-zinc-900 rounded-t-2xl sm:rounded-2xl shadow-2xl border border-zinc-200 dark:border-zinc-800 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-6 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -98,10 +102,14 @@ export function TaskDetailModal() {
           </div>
           <div className="flex items-center gap-1.5">
             <button
-              onClick={() => {
-                if (confirm(t.work.deleteConfirm)) {
-                  deleteTask(selectedTask.id);
-                }
+              onClick={async () => {
+                const ok = await confirm({
+                  title: t.dialog.deleteTaskTitle,
+                  message: t.dialog.deleteTaskMessage,
+                  confirmLabel: t.common.delete,
+                  icon: Trash2,
+                });
+                if (ok) deleteTask(selectedTask.id);
               }}
               className="p-2 text-zinc-400 hover:text-rose-500 rounded-xl transition"
               title="Delete task"
@@ -194,7 +202,7 @@ export function TaskDetailModal() {
               >
                 {hubState.users.map((u) => (
                   <option key={u.id} value={u.id}>
-                    {u.avatar || '👤'} {u.name}
+                    {(u.avatar && !u.avatar.startsWith('http') ? u.avatar : '👤')} {u.name}
                   </option>
                 ))}
               </select>
@@ -262,6 +270,15 @@ export function TaskDetailModal() {
             </div>
           </div>
 
+          {/* Attachments Section */}
+          <div className="pt-3 border-t border-zinc-200 dark:border-zinc-800">
+            <AttachmentGallery
+              entityType="task"
+              entityId={selectedTask.id}
+              workspaceId={selectedTask.workspace_id}
+            />
+          </div>
+
           {/* Comments Section */}
           <div className="pt-4 border-t border-zinc-200 dark:border-zinc-800">
             <h5 className="text-xs sm:text-sm font-bold text-zinc-800 dark:text-zinc-200 flex items-center gap-2 mb-3">
@@ -283,10 +300,10 @@ export function TaskDetailModal() {
                   >
                     <div className="flex items-center justify-between mb-1">
                       <div className="flex items-center gap-2 font-bold text-zinc-900 dark:text-zinc-100">
-                        <span>{c.user_avatar || '👤'}</span>
+                        <UserAvatar avatar={c.user_avatar} name={c.user_name} size="sm" />
                         <span>{c.user_name || 'Member'}</span>
                       </div>
-                      <span className="text-[11px] text-zinc-400">
+                      <span className="text-xs text-zinc-400">
                         {formatRelativeTime(c.created_at)}
                       </span>
                     </div>

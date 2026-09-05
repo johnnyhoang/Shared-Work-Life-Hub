@@ -3,8 +3,10 @@
 import React, { useState, useEffect } from 'react';
 import { useHub } from '@/context/HubContext';
 import { useI18n } from '@/lib/i18n';
-import { getLocalTimeInTimezone } from '@/lib/dateUtils';
 import { TeamManagementModal } from '../team/TeamManagementModal';
+import { NotificationSettingsModal } from '../more/NotificationSettingsModal';
+import { UserAvatar } from '../common/UserAvatar';
+import { WorkspaceSwitcher } from './WorkspaceSwitcher';
 import {
   Plus,
   ShieldCheck,
@@ -13,15 +15,18 @@ import {
   LogIn,
   ChevronDown,
   Users,
+  Bell,
+  MoreHorizontal,
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import type { User as SupabaseAuthUser } from '@supabase/supabase-js';
 
 export function Header() {
-  const { hubState, openQuickAction } = useHub();
+  const { hubState, openQuickAction, setActiveTab } = useHub();
   const { t, language, setLanguage } = useI18n();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [isTeamModalOpen, setIsTeamModalOpen] = useState(false);
+  const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
   const [authUser, setAuthUser] = useState<SupabaseAuthUser | null>(null);
 
   const supabase = createClient();
@@ -43,11 +48,7 @@ export function Header() {
   if (!hubState) return null;
 
   const currentUser = hubState.currentUser;
-  const partnerUser = hubState.partnerUser;
   const isLead = currentUser.role === 'admin';
-
-  const userTime = getLocalTimeInTimezone(currentUser.timezone);
-  const partnerTime = getLocalTimeInTimezone(partnerUser.timezone);
 
   const handleLogout = async () => {
     try {
@@ -61,24 +62,15 @@ export function Header() {
   return (
     <>
       <header className="sticky top-0 z-30 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border-b border-zinc-200/80 dark:border-zinc-800 transition-colors">
-        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
-          {/* Left: Brand & Clocks */}
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 font-bold text-base sm:text-lg tracking-tight text-zinc-900 dark:text-zinc-50">
+        <div className="px-4 h-[var(--header-h)] flex items-center justify-between gap-3">
+          {/* Left: Brand & Workspace Switcher */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="flex items-center gap-1.5 font-bold text-base sm:text-lg tracking-tight text-zinc-900 dark:text-zinc-50">
               <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span>Hub</span>
+              <span className="hidden sm:inline">Hub</span>
             </div>
 
-            {/* Compact Timezone with readable font */}
-            <div className="flex items-center gap-2 text-xs sm:text-sm font-bold text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800/90 px-3 py-1 rounded-xl">
-              <span>{currentUser.flag} {userTime.time}</span>
-              {partnerUser.id !== currentUser.id && (
-                <>
-                  <span className="text-zinc-300 dark:text-zinc-600">•</span>
-                  <span>{partnerUser.flag} {partnerTime.time}</span>
-                </>
-              )}
-            </div>
+            <WorkspaceSwitcher />
           </div>
 
           {/* Right: Language + Add Button + Profile */}
@@ -107,12 +99,16 @@ export function Header() {
               <div className="relative">
                 <button
                   onClick={() => setShowUserMenu(!showUserMenu)}
-                  className="flex items-center gap-2 pl-2 pr-3 py-1 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800 transition text-xs sm:text-sm font-bold text-zinc-800 dark:text-zinc-200"
+                  className="flex items-center gap-2 p-1 pr-2 rounded-2xl hover:bg-zinc-100 dark:hover:bg-zinc-800 transition text-xs sm:text-sm font-bold text-zinc-800 dark:text-zinc-200"
                 >
-                  <span className="text-base">{currentUser.avatar || '👤'}</span>
-                  <span className="max-w-[90px] truncate">{currentUser.name}</span>
-                  {isLead && <ShieldCheck className="w-4 h-4 text-blue-600" />}
-                  <ChevronDown className="w-3.5 h-3.5 text-zinc-400" />
+                  <UserAvatar
+                    avatar={currentUser.avatar_url || currentUser.avatar}
+                    name={currentUser.name}
+                    size="md"
+                  />
+                  <span className="max-w-[100px] truncate">{currentUser.name}</span>
+                  {isLead && <ShieldCheck className="w-4 h-4 text-blue-600 shrink-0" />}
+                  <ChevronDown className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
                 </button>
 
                 {showUserMenu && (
@@ -121,17 +117,46 @@ export function Header() {
                       className="fixed inset-0 z-40"
                       onClick={() => setShowUserMenu(false)}
                     />
-                    <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-zinc-200 dark:border-zinc-800 py-2 z-50 text-xs sm:text-sm">
-                      <div className="px-4 py-2 border-b border-zinc-100 dark:border-zinc-800">
-                        <div className="font-bold text-zinc-900 dark:text-zinc-100 truncate text-sm">
-                          {currentUser.name}
-                        </div>
-                        <div className="text-xs text-zinc-400 truncate">
-                          {currentUser.email}
+                    <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-zinc-200 dark:border-zinc-800 py-2 z-50 text-xs sm:text-sm animate-in fade-in zoom-in-95 duration-100">
+                      <div className="px-4 py-3 border-b border-zinc-100 dark:border-zinc-800 flex items-center gap-3">
+                        <UserAvatar
+                          avatar={currentUser.avatar_url || currentUser.avatar}
+                          name={currentUser.name}
+                          size="lg"
+                        />
+                        <div className="min-w-0 flex-1">
+                          <div className="font-bold text-zinc-900 dark:text-zinc-100 truncate text-sm">
+                            {currentUser.name}
+                          </div>
+                          <div className="text-xs text-zinc-400 truncate">
+                            {currentUser.email}
+                          </div>
                         </div>
                       </div>
 
-                      <div className="p-1 border-b border-zinc-100 dark:border-zinc-800">
+                      <div className="p-1 border-b border-zinc-100 dark:border-zinc-800 space-y-0.5">
+                        <button
+                          onClick={() => {
+                            setShowUserMenu(false);
+                            setIsNotificationModalOpen(true);
+                          }}
+                          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-200 font-semibold"
+                        >
+                          <Bell className="w-4 h-4 text-blue-600" />
+                          <span>{t.notifications.title}</span>
+                        </button>
+
+                        <button
+                          onClick={() => {
+                            setShowUserMenu(false);
+                            setActiveTab('more');
+                          }}
+                          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-200 font-semibold"
+                        >
+                          <MoreHorizontal className="w-4 h-4 text-zinc-500" />
+                          <span>{t.common.more}</span>
+                        </button>
+
                         <button
                           onClick={() => {
                             setShowUserMenu(false);
@@ -139,7 +164,7 @@ export function Header() {
                           }}
                           className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-200 font-semibold"
                         >
-                          <Users className="w-4 h-4 text-blue-600" />
+                          <Users className="w-4 h-4 text-purple-600" />
                           <span>{t.common.teamManagement}</span>
                         </button>
                       </div>
@@ -174,6 +199,12 @@ export function Header() {
         isOpen={isTeamModalOpen}
         onClose={() => setIsTeamModalOpen(false)}
       />
+
+      <NotificationSettingsModal
+        isOpen={isNotificationModalOpen}
+        onClose={() => setIsNotificationModalOpen(false)}
+      />
     </>
   );
 }
+

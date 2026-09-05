@@ -7,6 +7,8 @@ import { IdeasScreen } from '../ideas/IdeasScreen';
 import { KnowledgeScreen } from '../knowledge/KnowledgeScreen';
 import { DecisionsScreen } from '../decisions/DecisionsScreen';
 import { TeamManagementModal } from '../team/TeamManagementModal';
+import { NotificationSettingsModal } from './NotificationSettingsModal';
+import { UserAvatar } from '../common/UserAvatar';
 import {
   Lightbulb,
   BookOpen,
@@ -17,15 +19,18 @@ import {
   ArrowLeft,
   ShieldCheck,
   User,
+  Bell,
+  Sparkles,
 } from 'lucide-react';
 
 type SubView = 'menu' | 'ideas' | 'knowledge' | 'decisions';
 
 export function MoreScreen() {
-  const { hubState, switchUser } = useHub();
-  const { t, language } = useI18n();
+  const { hubState } = useHub();
+  const { t } = useI18n();
   const [subView, setSubView] = useState<SubView>('menu');
   const [isTeamModalOpen, setIsTeamModalOpen] = useState(false);
+  const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
 
   if (!hubState) return null;
 
@@ -115,6 +120,37 @@ export function MoreScreen() {
         </p>
       </div>
 
+      {/* Notification & Chat Integrations Card */}
+      <div
+        onClick={() => setIsNotificationModalOpen(true)}
+        className="flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-blue-500/10 via-indigo-500/10 to-pink-500/10 dark:from-blue-950/40 dark:via-indigo-950/40 dark:to-pink-950/40 border border-blue-200/80 dark:border-blue-900/60 hover:border-blue-300 dark:hover:border-blue-700 shadow-xs transition cursor-pointer group"
+      >
+        <div className="flex items-center gap-3.5">
+          <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition">
+            <Bell className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h3 className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
+                {t.notifications.title}
+              </h3>
+              <span className="flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300">
+                <Sparkles className="w-2.5 h-2.5" />
+                <span>Morning Digest</span>
+              </span>
+            </div>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+              Zalo, Slack, Discord, Telegram, Messenger
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-1 text-xs font-bold text-blue-600 dark:text-blue-400 group-hover:translate-x-0.5 transition">
+          <span>{t.common.configure}</span>
+          <ChevronRight className="w-4 h-4" />
+        </div>
+      </div>
+
       {/* Modules List */}
       <div className="space-y-2.5">
         {modules.map((item) => {
@@ -134,11 +170,11 @@ export function MoreScreen() {
                     <h3 className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
                       {item.label}
                     </h3>
-                    <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
+                    <span className="px-1.5 py-0.5 rounded-full text-xs font-bold bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
                       {item.count}
                     </span>
                   </div>
-                  <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5">
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
                     {item.desc}
                   </p>
                 </div>
@@ -181,31 +217,24 @@ export function MoreScreen() {
                     : 'bg-zinc-50/50 dark:bg-zinc-800/40 border-zinc-200 dark:border-zinc-700'
                 }`}
               >
-                <div className="flex items-center justify-between mb-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">{user.avatar || '👤'}</span>
-                    <div>
-                      <div className="text-xs font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
-                        <span>{user.name}</span>
-                        {isLead && <ShieldCheck className="w-3 h-3 text-blue-600" />}
-                      </div>
-                      <div className="text-[10px] text-zinc-500">
-                        {isLead ? t.team.roleLead : t.team.roleMember}
-                      </div>
+                <div className="flex items-center gap-2.5 min-w-0 mb-1">
+                  <UserAvatar
+                    avatar={user.avatar_url || user.avatar}
+                    name={user.name}
+                    size="md"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <div className="text-xs font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5 truncate">
+                      <span className="truncate">{user.name}</span>
+                      {isLead && <ShieldCheck className="w-3.5 h-3.5 text-blue-600 shrink-0" />}
+                    </div>
+                    <div className="text-xs text-zinc-500 truncate">
+                      {isLead ? t.team.roleLead : t.team.roleMember}
                     </div>
                   </div>
-
-                  {!isCurrent && (
-                    <button
-                      onClick={() => switchUser(user.id)}
-                      className="px-2 py-1 text-[10px] font-bold text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900/40 rounded-lg transition"
-                    >
-                      {language === 'vi' ? 'Xem' : 'View'}
-                    </button>
-                  )}
                 </div>
 
-                <div className="text-[10px] text-zinc-400 flex items-center gap-1.5 mt-2 pt-2 border-t border-zinc-200/60 dark:border-zinc-700/60">
+                <div className="text-xs text-zinc-400 flex items-center gap-1.5 mt-2 pt-2 border-t border-zinc-200/60 dark:border-zinc-700/60">
                   <Clock className="w-3 h-3" />
                   <span>{user.location} • {user.timezone}</span>
                 </div>
@@ -219,6 +248,12 @@ export function MoreScreen() {
         isOpen={isTeamModalOpen}
         onClose={() => setIsTeamModalOpen(false)}
       />
+
+      <NotificationSettingsModal
+        isOpen={isNotificationModalOpen}
+        onClose={() => setIsNotificationModalOpen(false)}
+      />
     </div>
   );
 }
+

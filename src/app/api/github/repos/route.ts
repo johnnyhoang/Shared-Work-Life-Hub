@@ -6,7 +6,7 @@ export async function GET(request: NextRequest) {
 
   if (!username) {
     return NextResponse.json(
-      { error: 'Username is required' },
+      { error: 'invalid_request' },
       { status: 400 }
     );
   }
@@ -29,12 +29,12 @@ export async function GET(request: NextRequest) {
     if (!res.ok) {
       if (res.status === 404) {
         return NextResponse.json(
-          { error: `GitHub user "${username}" not found` },
+          { error: 'github_user_not_found' },
           { status: 404 }
         );
       }
       return NextResponse.json(
-        { error: 'Failed to fetch repositories from GitHub' },
+        { error: 'github_failed' },
         { status: res.status }
       );
     }
@@ -55,9 +55,9 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ repos: formattedRepos });
   } catch (err: unknown) {
-    const error = err as Error;
+    console.error('[api:github_failed]', err);
     return NextResponse.json(
-      { error: error.message || 'Error communicating with GitHub API' },
+      { error: 'github_failed' },
       { status: 500 }
     );
   }

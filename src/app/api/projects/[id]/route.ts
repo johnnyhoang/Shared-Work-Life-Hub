@@ -15,12 +15,12 @@ export async function GET(
     const { id } = await params;
     const project = await getSupabaseProjectById(id);
     if (!project) {
-      return NextResponse.json({ error: 'Project not found' }, { status: 404 });
+      return NextResponse.json({ error: 'not_found' }, { status: 404 });
     }
     return NextResponse.json(project);
   } catch (error) {
     console.error('Failed to get project:', error);
-    return NextResponse.json({ error: 'Failed to fetch project' }, { status: 500 });
+    return NextResponse.json({ error: 'fetch_failed' }, { status: 500 });
   }
 }
 
@@ -36,7 +36,7 @@ export async function PATCH(
     return NextResponse.json(project);
   } catch (error) {
     console.error('Failed to update project:', error);
-    return NextResponse.json({ error: 'Failed to update project' }, { status: 500 });
+    return NextResponse.json({ error: 'save_failed' }, { status: 500 });
   }
 }
 
@@ -50,6 +50,6 @@ export async function DELETE(
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Failed to delete project:', error);
-    return NextResponse.json({ error: 'Failed to delete project' }, { status: 500 });
+    return NextResponse.json({ error: 'delete_failed' }, { status: 500 });
   }
 }

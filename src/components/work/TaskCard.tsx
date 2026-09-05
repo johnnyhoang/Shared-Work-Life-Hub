@@ -15,7 +15,7 @@ import {
 
 export function TaskCard({ task }: { task: Task }) {
   const { hubState, setSelectedTask, toggleTaskStatus } = useHub();
-  const { t, language } = useI18n();
+  const { t } = useI18n();
 
   if (!hubState) return null;
 
@@ -36,11 +36,11 @@ export function TaskCard({ task }: { task: Task }) {
   // Assignee direction label
   let assignmentLabel = '';
   if (isAssignedToMe && !isCreatedByMe) {
-    assignmentLabel = `${task.creator_name || 'Team'} → ${language === 'vi' ? 'Bạn' : 'You'}`;
+    assignmentLabel = `${task.creator_name || 'Team'} → ${t.common.you}`;
   } else if (!isAssignedToMe && isCreatedByMe) {
-    assignmentLabel = `${language === 'vi' ? 'Bạn' : 'You'} → ${task.assignee_name || 'Team'}`;
+    assignmentLabel = `${t.common.you} → ${task.assignee_name || 'Team'}`;
   } else if (isAssignedToMe && isCreatedByMe) {
-    assignmentLabel = language === 'vi' ? 'Việc của bạn' : 'For You';
+    assignmentLabel = t.work.forYou;
   } else {
     assignmentLabel = `${task.creator_name || 'User'} → ${task.assignee_name || 'Member'}`;
   }
@@ -51,7 +51,7 @@ export function TaskCard({ task }: { task: Task }) {
       className={`group relative flex items-start gap-3 p-3 rounded-xl border transition-all cursor-pointer ${
         isCompleted
           ? 'bg-zinc-50/50 dark:bg-zinc-900/30 border-zinc-200/60 dark:border-zinc-800/60 opacity-70'
-          : 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 shadow-xs hover:shadow-sm'
+          : 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 shadow-xs hover:shadow-xs'
       }`}
     >
       {/* 1-tap Checkbox */}
@@ -90,7 +90,7 @@ export function TaskCard({ task }: { task: Task }) {
           {/* Priority Pill */}
           {task.priority !== 'low' && !isCompleted && (
             <span
-              className={`px-1.5 py-0.2 rounded-md text-[10px] font-bold shrink-0 ${
+              className={`px-1.5 py-0.5 rounded-full text-xs font-bold shrink-0 ${
                 priorityStyles[task.priority].bg
               }`}
             >
@@ -100,17 +100,17 @@ export function TaskCard({ task }: { task: Task }) {
         </div>
 
         {task.description && !isCompleted && (
-          <p className="text-[11px] text-zinc-500 dark:text-zinc-400 line-clamp-1 mt-0.5">
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 line-clamp-1 mt-0.5">
             {task.description}
           </p>
         )}
 
         {/* Metadata Footer */}
-        <div className="flex items-center gap-2 flex-wrap mt-2 text-[11px]">
+        <div className="flex items-center gap-2 flex-wrap mt-2 text-xs">
           {/* Project Tag */}
           {task.project_name && (
             <span
-              className="px-1.5 py-0.5 rounded-md font-medium text-[10px]"
+              className="px-1.5 py-0.5 rounded-full font-medium text-xs"
               style={{
                 backgroundColor: `${task.project_color || '#3b82f6'}18`,
                 color: task.project_color || '#3b82f6',
@@ -122,7 +122,7 @@ export function TaskCard({ task }: { task: Task }) {
 
           {/* Directionality Tag */}
           <span
-            className={`px-1.5 py-0.5 rounded-md text-[10px] font-medium flex items-center gap-1 ${
+            className={`px-1.5 py-0.5 rounded-full text-xs font-medium flex items-center gap-1 ${
               isAssignedToMe && !isCreatedByMe
                 ? 'bg-purple-50 dark:bg-purple-950/50 text-purple-700 dark:text-purple-300 font-semibold'
                 : !isAssignedToMe && isCreatedByMe
@@ -154,7 +154,7 @@ export function TaskCard({ task }: { task: Task }) {
 
           {/* Comments count */}
           {task.comment_count !== undefined && task.comment_count > 0 && (
-            <span className="flex items-center gap-1 text-zinc-400 dark:text-zinc-500 text-[10px]">
+            <span className="flex items-center gap-1 text-zinc-400 dark:text-zinc-500 text-xs">
               <MessageSquare className="w-3 h-3" />
               <span>{task.comment_count}</span>
             </span>

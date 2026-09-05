@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Background Gradient: Bright Pearl White -->
+    <linearGradient id="bgBright" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="65%" stop-color="#F8FAFC" />
+      <stop offset="100%" stop-color="#F1F5F9" />
+    </linearGradient>
+
+    <!-- Subtle Border Glow -->
+    <linearGradient id="borderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E2E8F0" />
+      <stop offset="100%" stop-color="#CBD5E1" />
+    </linearGradient>
+
+    <!-- Gradient 1: Electric Blue / Cyan -->
+    <linearGradient id="gradCyanBlue" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00F2FE" />
+      <stop offset="50%" stop-color="#38BDF8" />
+      <stop offset="100%" stop-color="#2563EB" />
+    </linearGradient>
+
+    <!-- Gradient 2: Vivid Violet / Purple / Magenta -->
+    <linearGradient id="gradPurplePink" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#6366F1" />
+      <stop offset="50%" stop-color="#8B5CF6" />
+      <stop offset="100%" stop-color="#EC4899" />
+    </linearGradient>
+
+    <!-- Gradient 3: Coral / Sunrise Orange -->
+    <linearGradient id="gradCoralOrange" x1="100%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#F43F5E" />
+      <stop offset="50%" stop-color="#FB7185" />
+      <stop offset="100%" stop-color="#F97316" />
+    </linearGradient>
+
+    <!-- Highlight Specular -->
+    <linearGradient id="highlight" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.95" />
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.1" />
+    </linearGradient>
+
+    <!-- Shadow for Depth -->
+    <filter id="abstractShadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="14" stdDeviation="20" flood-color="#3B82F6" flood-opacity="0.28" />
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#8B5CF6" flood-opacity="0.2" />
+    </filter>
+  </defs>
+
+  <!-- Bright Rounded Container -->
+  <rect x="24" y="24" width="464" height="464" rx="116" fill="url(#bgBright)" stroke="url(#borderGrad)" stroke-width="4" />
+
+  <!-- Abstract Interlocking Prismatic Vortex / 3 Dynamic Overlapping Petals -->
+  <g filter="url(#abstractShadow)">
+    <!-- Top-Right Loop (Purple / Magenta) -->
+    <path
+      d="M256 256 C290 140 390 130 410 210 C430 290 330 350 256 256 Z"
+      fill="url(#gradPurplePink)"
+      opacity="0.92"
+    />
+
+    <!-- Bottom-Right Loop (Coral / Orange) -->
+    <path
+      d="M256 256 C360 290 370 390 290 410 C210 430 150 330 256 256 Z"
+      fill="url(#gradCoralOrange)"
+      opacity="0.9"
+    />
+
+    <!-- Left Loop (Cyan / Electric Blue) -->
+    <path
+      d="M256 256 C140 290 130 190 210 130 C290 80 330 180 256 256 Z"
+      fill="url(#gradCyanBlue)"
+      opacity="0.95"
+    />
+
+    <!-- Central Glowing Core Fusion -->
+    <circle cx="256" cy="256" r="32" fill="#FFFFFF" opacity="0.95" />
+    <circle cx="256" cy="256" r="48" fill="#38BDF8" opacity="0.25" />
+
+    <!-- Sleek Highlights across arcs -->
+    <path
+      d="M215 145 C255 110 290 150 265 210"
+      fill="none"
+      stroke="url(#highlight)"
+      stroke-width="10"
+      stroke-linecap="round"
+    />
+    <path
+      d="M375 220 C390 270 340 310 280 270"
+      fill="none"
+      stroke="url(#highlight)"
+      stroke-width="8"
+      stroke-linecap="round"
+    />
+  </g>
+</svg>

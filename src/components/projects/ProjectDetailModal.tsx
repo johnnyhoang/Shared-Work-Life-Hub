@@ -5,13 +5,16 @@ import { useHub } from '@/context/HubContext';
 import { useI18n } from '@/lib/i18n';
 import { Project, ProjectStatus } from '@/types';
 import { TaskCard } from '../work/TaskCard';
+import { UserAvatar } from '../common/UserAvatar';
+import { AttachmentGallery } from '../common/AttachmentGallery';
 import { formatRelativeTime } from '@/lib/dateUtils';
+
 import {
   X,
   Plus,
 } from 'lucide-react';
 
-type ProjectTab = 'tasks' | 'ideas' | 'knowledge' | 'decisions' | 'activity' | 'overview';
+type ProjectTab = 'tasks' | 'ideas' | 'knowledge' | 'decisions' | 'activity' | 'files' | 'overview';
 
 export function ProjectDetailModal() {
   const {
@@ -36,6 +39,7 @@ export function ProjectDetailModal() {
   const tabs: { id: ProjectTab; label: string; count?: number }[] = [
     { id: 'tasks', label: t.projects.tabTasks, count: projectTasks.length },
     { id: 'ideas', label: t.projects.tabIdeas, count: projectIdeas.length },
+    { id: 'files', label: (t.projects as any).tabAttachments || 'Tệp đính kèm' },
     { id: 'knowledge', label: t.projects.tabKnowledge, count: projectKnowledge.length },
     { id: 'decisions', label: t.projects.tabDecisions, count: projectDecisions.length },
     { id: 'activity', label: t.projects.tabActivity, count: projectActivities.length },
@@ -51,7 +55,7 @@ export function ProjectDetailModal() {
         <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-200 dark:border-zinc-800">
           <div className="flex items-center gap-2.5">
             <div
-              className="w-7 h-7 rounded-lg flex items-center justify-center text-white text-xs font-bold"
+              className="w-7 h-7 rounded-xl flex items-center justify-center text-white text-xs font-bold"
               style={{ backgroundColor: selectedProject.color || '#3b82f6' }}
             >
               {selectedProject.name.charAt(0)}
@@ -65,7 +69,7 @@ export function ProjectDetailModal() {
 
           <button
             onClick={() => setSelectedProject(null)}
-            className="p-1.5 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 rounded-lg transition"
+            className="p-1.5 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 rounded-xl transition"
           >
             <X className="w-4 h-4" />
           </button>
@@ -85,7 +89,7 @@ export function ProjectDetailModal() {
             >
               <span>{tab.label}</span>
               {tab.count !== undefined && (
-                <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
+                <span className="px-1.5 py-0.5 rounded-full text-xs bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400">
                   {tab.count}
                 </span>
               )}
@@ -156,7 +160,7 @@ export function ProjectDetailModal() {
                         <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
                           {idea.title}
                         </span>
-                        <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300">
+                        <span className="px-2 py-0.5 rounded-full text-xs font-bold uppercase bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300">
                           {idea.status}
                         </span>
                       </div>
@@ -169,6 +173,17 @@ export function ProjectDetailModal() {
                   ))}
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Attachments / Files Tab */}
+          {activeTab === 'files' && (
+            <div className="space-y-3">
+              <AttachmentGallery
+                entityType="project"
+                entityId={selectedProject.id}
+                workspaceId={selectedProject.workspace_id}
+              />
             </div>
           )}
 
@@ -203,7 +218,7 @@ export function ProjectDetailModal() {
                         <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
                           {k.topic}
                         </span>
-                        <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300">
+                        <span className="px-2 py-0.5 rounded-full text-xs font-bold uppercase bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300">
                           {k.status.replace('_', ' ')}
                         </span>
                       </div>
@@ -250,7 +265,7 @@ export function ProjectDetailModal() {
                         <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
                           {d.title}
                         </span>
-                        <span className="text-[10px] text-zinc-400">
+                        <span className="text-xs text-zinc-400">
                           {formatRelativeTime(d.created_at)}
                         </span>
                       </div>
@@ -277,12 +292,12 @@ export function ProjectDetailModal() {
                     key={a.id}
                     className="flex items-start gap-2.5 p-2 rounded-xl bg-zinc-50 dark:bg-zinc-800/40 text-xs"
                   >
-                    <span>{a.actor_avatar || '👤'}</span>
+                    <UserAvatar avatar={a.actor_avatar} name={a.actor_name} size="sm" className="mt-0.5" />
                     <div className="flex-1 min-w-0">
                       <div className="font-medium text-zinc-900 dark:text-zinc-100">
                         {a.summary}
                       </div>
-                      <div className="text-[10px] text-zinc-400 mt-0.5">
+                      <div className="text-xs text-zinc-400 mt-0.5">
                         {formatRelativeTime(a.created_at)}
                       </div>
                     </div>

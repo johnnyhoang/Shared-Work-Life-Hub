@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useI18n } from '@/lib/i18n';
+import { errorText } from '@/lib/errorMessages';
 import { Sparkles, Loader2, Globe } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
@@ -24,21 +25,28 @@ export default function LoginPage() {
         },
       });
       if (error) {
-        setErrorMsg(error.message);
+        console.error('Google sign-in failed:', error);
+        setErrorMsg(errorText(t.errors, error));
         setIsSigningIn(false);
       }
     } catch (err) {
-      console.error(err);
-      setErrorMsg('Failed to connect to Google Auth');
+      console.error('Google sign-in failed:', err);
+      setErrorMsg(errorText(t.errors, err));
       setIsSigningIn(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-between bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 p-4 sm:p-6">
+    <div
+      suppressHydrationWarning
+      className="min-h-screen flex flex-col justify-between bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 p-4 sm:p-6"
+    >
       {/* Top Bar: Language Switcher */}
-      <div className="flex items-center justify-between max-w-md w-full mx-auto">
-        <div className="flex items-center gap-2">
+      <div
+        suppressHydrationWarning
+        className="flex items-center justify-between max-w-md w-full mx-auto"
+      >
+        <div suppressHydrationWarning className="flex items-center gap-2">
           <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse" />
           <span className="font-bold text-base tracking-tight">Hub</span>
         </div>
@@ -53,8 +61,11 @@ export default function LoginPage() {
       </div>
 
       {/* Main Login Card - Clean & Minimal */}
-      <div className="max-w-md w-full mx-auto my-auto bg-white dark:bg-zinc-900 rounded-3xl p-8 border border-zinc-200 dark:border-zinc-800 shadow-xl space-y-6">
-        <div className="text-center space-y-2.5">
+      <div
+        suppressHydrationWarning
+        className="max-w-md w-full mx-auto my-auto bg-white dark:bg-zinc-900 rounded-2xl p-8 border border-zinc-200 dark:border-zinc-800 shadow-2xl space-y-6"
+      >
+        <div suppressHydrationWarning className="text-center space-y-2.5">
           <div className="w-14 h-14 rounded-2xl bg-blue-600/10 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center mx-auto shadow-xs">
             <Sparkles className="w-7 h-7" />
           </div>
@@ -77,7 +88,7 @@ export default function LoginPage() {
           type="button"
           onClick={handleGoogleSignIn}
           disabled={isSigningIn}
-          className="w-full flex items-center justify-center gap-3 py-3.5 px-5 rounded-2xl bg-white hover:bg-zinc-50 dark:bg-zinc-800 dark:hover:bg-zinc-700/90 border border-zinc-300 dark:border-zinc-700 text-sm font-bold shadow-sm active:scale-98 transition cursor-pointer"
+          className="w-full flex items-center justify-center gap-3 py-3.5 px-5 rounded-2xl bg-white hover:bg-zinc-50 dark:bg-zinc-800 dark:hover:bg-zinc-700/90 border border-zinc-300 dark:border-zinc-700 text-sm font-bold shadow-xs active:scale-98 transition cursor-pointer"
         >
           {isSigningIn ? (
             <Loader2 className="w-5 h-5 animate-spin text-zinc-500" />
@@ -104,15 +115,16 @@ export default function LoginPage() {
           <span>{t.auth.signInWithGoogle}</span>
         </button>
 
-        <p className="text-[11px] text-zinc-400 text-center leading-relaxed">
-          {language === 'vi'
-            ? 'Tài khoản của bạn sẽ được đồng bộ và phân quyền an toàn qua Google.'
-            : 'Your account will be securely synced and managed with Google.'}
+        <p className="text-xs text-zinc-400 text-center leading-relaxed">
+          {t.auth.googleSyncNote}
         </p>
       </div>
 
       {/* Footer info */}
-      <div className="max-w-md w-full mx-auto text-center text-[11px] text-zinc-400">
+      <div
+        suppressHydrationWarning
+        className="max-w-md w-full mx-auto text-center text-xs text-zinc-400"
+      >
         Shared Work & Life Hub • Powered by Supabase
       </div>
     </div>

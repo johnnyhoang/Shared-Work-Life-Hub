@@ -3,6 +3,9 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  /* Single source of truth for the sticky header height.
+     Consumed by Header (h-) and the desktop sidebar (top-). */
+  --header-h: 3.75rem;
 }
 
 @theme inline {

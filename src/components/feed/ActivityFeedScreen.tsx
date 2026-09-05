@@ -4,7 +4,9 @@ import React, { useState } from 'react';
 import { useHub } from '@/context/HubContext';
 import { useI18n } from '@/lib/i18n';
 import { formatRelativeTime } from '@/lib/dateUtils';
+import { UserAvatar } from '../common/UserAvatar';
 import { Activity as ActivityIcon, FolderKanban, CheckSquare, Lightbulb, BookOpen, Scale, MessageSquare } from 'lucide-react';
+
 import { EntityType } from '@/types';
 
 export function ActivityFeedScreen() {
@@ -68,12 +70,12 @@ export function ActivityFeedScreen() {
       <div className="space-y-2 p-3 rounded-2xl bg-zinc-50 dark:bg-zinc-900/60 border border-zinc-200/80 dark:border-zinc-800">
         {/* Actor Filter */}
         <div className="flex items-center gap-1.5 flex-wrap">
-          <span className="text-[11px] font-semibold text-zinc-400 w-12">{t.common.who}</span>
+          <span className="text-xs font-semibold text-zinc-400 w-12">{t.common.who}</span>
           {(['all', 'mine', 'partner'] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActorFilter(tab)}
-              className={`px-2.5 py-1 rounded-lg text-xs font-medium transition ${
+              className={`px-2.5 py-1 rounded-xl text-xs font-medium transition ${
                 actorFilter === tab
                   ? 'bg-blue-600 text-white font-bold shadow-xs'
                   : 'bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700'
@@ -86,7 +88,7 @@ export function ActivityFeedScreen() {
 
         {/* Time Filter */}
         <div className="flex items-center gap-1.5 flex-wrap">
-          <span className="text-[11px] font-semibold text-zinc-400 w-12">{t.common.when}</span>
+          <span className="text-xs font-semibold text-zinc-400 w-12">{t.common.when}</span>
           {[
             { id: 'all', label: t.feed.allTime },
             { id: 'since_visit', label: t.feed.sinceVisit },
@@ -96,7 +98,7 @@ export function ActivityFeedScreen() {
             <button
               key={tab.id}
               onClick={() => setTimeFilter(tab.id as typeof timeFilter)}
-              className={`px-2.5 py-1 rounded-lg text-xs font-medium transition ${
+              className={`px-2.5 py-1 rounded-xl text-xs font-medium transition ${
                 timeFilter === tab.id
                   ? 'bg-zinc-800 dark:bg-zinc-100 text-white dark:text-zinc-900 font-bold shadow-xs'
                   : 'bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700'
@@ -109,12 +111,12 @@ export function ActivityFeedScreen() {
 
         {/* Entity Type Filter */}
         <div className="flex items-center gap-1.5 flex-wrap pt-1 border-t border-zinc-200/60 dark:border-zinc-800">
-          <span className="text-[11px] font-semibold text-zinc-400 w-12">{t.common.type}</span>
+          <span className="text-xs font-semibold text-zinc-400 w-12">{t.common.type}</span>
           {(['all', 'task', 'project', 'idea', 'knowledge', 'decision'] as const).map((type) => (
             <button
               key={type}
               onClick={() => setEntityFilter(type)}
-              className={`px-2 py-0.5 rounded-md text-[11px] capitalize transition ${
+              className={`px-2 py-0.5 rounded-full text-xs capitalize transition ${
                 entityFilter === type
                   ? 'bg-blue-100 dark:bg-blue-950 text-blue-700 dark:text-blue-300 font-bold'
                   : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200'
@@ -150,14 +152,14 @@ export function ActivityFeedScreen() {
                 }}
                 className="group flex items-start gap-3 p-3 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 shadow-xs transition cursor-pointer"
               >
-                <div className="text-xl mt-0.5">{act.actor_avatar || '👤'}</div>
+                <UserAvatar avatar={act.actor_avatar} name={act.actor_name} size="md" className="mt-0.5" />
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2 mb-0.5">
                     <span className="text-xs font-semibold text-zinc-900 dark:text-zinc-100">
                       {act.summary}
                     </span>
-                    <span className="text-[10px] text-zinc-400 shrink-0">
+                    <span className="text-xs text-zinc-400 shrink-0">
                       {formatRelativeTime(act.created_at)}
                     </span>
                   </div>
@@ -168,8 +170,8 @@ export function ActivityFeedScreen() {
                     </p>
                   )}
 
-                  <div className="flex items-center gap-2 mt-2 text-[11px]">
-                    <span className="flex items-center gap-1 text-[10px] font-medium text-zinc-400 uppercase tracking-wide">
+                  <div className="flex items-center gap-2 mt-2 text-xs">
+                    <span className="flex items-center gap-1 text-xs font-medium text-zinc-400 uppercase tracking-wide">
                       <Icon className="w-3 h-3 text-blue-500" />
                       <span>{act.entity_type}</span>
                     </span>
@@ -177,7 +179,7 @@ export function ActivityFeedScreen() {
                     {act.project_name && (
                       <>
                         <span className="text-zinc-300 dark:text-zinc-700">•</span>
-                        <span className="text-[10px] font-semibold text-zinc-700 dark:text-zinc-300">
+                        <span className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
                           {act.project_name}
                         </span>
                       </>

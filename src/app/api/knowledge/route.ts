@@ -9,7 +9,7 @@ export async function GET(_request: NextRequest) {
     return NextResponse.json(knowledge);
   } catch (error) {
     console.error('Failed to get knowledge:', error);
-    return NextResponse.json({ error: 'Failed to fetch knowledge' }, { status: 500 });
+    return NextResponse.json({ error: 'fetch_failed' }, { status: 500 });
   }
 }
 
@@ -20,6 +20,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(knowledge, { status: 201 });
   } catch (error) {
     console.error('Failed to create knowledge:', error);
-    return NextResponse.json({ error: 'Failed to create knowledge' }, { status: 500 });
+    return NextResponse.json({ error: 'save_failed' }, { status: 500 });
   }
 }

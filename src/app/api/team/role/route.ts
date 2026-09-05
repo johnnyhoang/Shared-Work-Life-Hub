@@ -10,13 +10,13 @@ export async function POST(request: NextRequest) {
     const { userId, role } = body;
 
     if (!userId || !role || !['admin', 'member'].includes(role)) {
-      return NextResponse.json({ error: 'Invalid parameters' }, { status: 400 });
+      return NextResponse.json({ error: 'invalid_request' }, { status: 400 });
     }
 
     const updated = await updateProfileRole(userId, role as UserRole);
     return NextResponse.json({ success: true, user: updated });
   } catch (error: any) {
     console.error('Failed to update team role:', error);
-    return NextResponse.json({ error: error.message || 'Failed to update team role' }, { status: 500 });
+    return NextResponse.json({ error: 'member_update_failed' }, { status: 500 });
   }
 }

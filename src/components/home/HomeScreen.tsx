@@ -4,6 +4,8 @@ import React from 'react';
 import { useHub } from '@/context/HubContext';
 import { useI18n } from '@/lib/i18n';
 import { formatRelativeTime, formatDueDate } from '@/lib/dateUtils';
+import { UserAvatar } from '../common/UserAvatar';
+import { InvitationBanner } from './InvitationBanner';
 import {
   Circle,
   Clock,
@@ -20,7 +22,7 @@ export function HomeScreen() {
     openQuickAction,
     setActiveTab,
   } = useHub();
-  const { t, language } = useI18n();
+  const { t } = useI18n();
 
   if (!hubState) return null;
 
@@ -38,6 +40,9 @@ export function HomeScreen() {
 
   return (
     <div className="space-y-6 pb-20 md:pb-8 max-w-2xl mx-auto">
+      {/* Pending Workspace Invitations Banner */}
+      <InvitationBanner />
+
       {/* Top Banner / Greeting */}
       <div className="flex items-center justify-between gap-3 pt-2">
         <div>
@@ -46,9 +51,7 @@ export function HomeScreen() {
             <span>👋</span>
           </h1>
           <p className="text-sm sm:text-base text-zinc-500 dark:text-zinc-400 mt-0.5">
-            {language === 'vi'
-              ? 'Tổng quan công việc & cập nhật nhóm hôm nay'
-              : "Today's team focus & recent updates"}
+            {t.home.todayFocus}
           </p>
         </div>
 
@@ -62,7 +65,7 @@ export function HomeScreen() {
       </div>
 
       {/* 1. Needs Your Attention (Action Required) */}
-      <div className="rounded-3xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-5 shadow-xs">
+      <div className="rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-5 shadow-xs">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2.5">
             <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse" />
@@ -108,7 +111,7 @@ export function HomeScreen() {
                 <div
                   key={task.id}
                   onClick={() => setSelectedTask(task)}
-                  className={`flex items-start gap-3.5 p-3.5 rounded-2xl border transition cursor-pointer hover:shadow-sm ${
+                  className={`flex items-start gap-3.5 p-3.5 rounded-2xl border transition cursor-pointer hover:shadow-xs ${
                     isUrgent
                       ? 'bg-rose-50/60 dark:bg-rose-950/30 border-rose-200 dark:border-rose-900/60'
                       : 'bg-zinc-50/80 dark:bg-zinc-800/50 border-zinc-200/80 dark:border-zinc-800'
@@ -156,7 +159,7 @@ export function HomeScreen() {
       </div>
 
       {/* 2. Recent Updates */}
-      <div className="rounded-3xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-5 shadow-xs">
+      <div className="rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-5 shadow-xs">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-sm sm:text-base font-bold uppercase tracking-wider text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
             <Clock className="w-4 h-4 text-blue-600" />
@@ -164,7 +167,7 @@ export function HomeScreen() {
           </h2>
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-2">
           {activities.length === 0 ? (
             <div className="py-6 text-center text-xs sm:text-sm text-zinc-400">
               {t.feed.noActivities}
@@ -176,25 +179,38 @@ export function HomeScreen() {
                 onClick={() => {
                   if (act.entity_type === 'task') {
                     const task = hubState.tasks.find((t) => t.id === act.entity_id);
-                    if (task) setSelectedTask(task);
+                    if (task) {
+                      setSelectedTask(task);
+                    } else {
+                      setActiveTab('work');
+                    }
+                  } else if (act.entity_type === 'project' && act.project_id) {
+                    const proj = hubState.projects.find((p) => p.id === act.project_id);
+                    if (proj) {
+                      // open project
+                      setActiveTab('projects');
+                    }
                   }
                 }}
-                className="flex items-start gap-3 p-2.5 rounded-2xl hover:bg-zinc-50 dark:hover:bg-zinc-800/60 transition cursor-pointer"
+                className="group flex items-center justify-between p-3 rounded-2xl bg-zinc-50/60 dark:bg-zinc-800/40 hover:bg-blue-50/60 dark:hover:bg-blue-950/30 border border-transparent hover:border-blue-200 dark:hover:border-blue-900/50 transition cursor-pointer"
               >
-                <span className="text-lg mt-0.5">{act.actor_avatar || '👤'}</span>
-                <div className="flex-1 min-w-0">
-                  <div className="text-xs sm:text-sm font-semibold text-zinc-900 dark:text-zinc-100 leading-snug">
-                    {act.summary}
-                  </div>
-                  <div className="flex items-center gap-2 text-xs text-zinc-400 mt-1">
-                    {act.project_name && (
-                      <span className="font-bold text-zinc-600 dark:text-zinc-400">
-                        {act.project_name} •
-                      </span>
-                    )}
-                    <span>{formatRelativeTime(act.created_at)}</span>
+                <div className="flex items-start gap-3 min-w-0">
+                  <UserAvatar avatar={act.actor_avatar} name={act.actor_name} size="sm" className="mt-0.5" />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-xs sm:text-sm font-semibold text-zinc-900 dark:text-zinc-100 leading-snug group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                      {act.summary}
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-zinc-400 mt-1">
+                      {act.project_name && (
+                        <span className="font-bold text-zinc-600 dark:text-zinc-400">
+                          {act.project_name} •
+                        </span>
+                      )}
+                      <span>{formatRelativeTime(act.created_at)}</span>
+                    </div>
                   </div>
                 </div>
+                <ArrowRight className="w-4 h-4 text-zinc-300 dark:text-zinc-600 group-hover:text-blue-600 dark:group-hover:text-blue-400 group-hover:translate-x-0.5 transition shrink-0 ml-2" />
               </div>
             ))
           )}

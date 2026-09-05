@@ -86,7 +86,7 @@ export function KnowledgeScreen() {
             <select
               value={selectedProjectId}
               onChange={(e) => setSelectedProjectId(e.target.value)}
-              className="px-2 py-1 text-xs rounded-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300"
+              className="px-2 py-1 text-xs rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300"
             >
               <option value="">{t.common.noProject}</option>
               {hubState.projects.map((p) => (
@@ -107,7 +107,7 @@ export function KnowledgeScreen() {
               <button
                 type="submit"
                 disabled={!newTopic.trim()}
-                className="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow-xs"
+                className="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-xl shadow-xs"
               >
                 {t.knowledge.saveTopic}
               </button>
@@ -126,13 +126,13 @@ export function KnowledgeScreen() {
           return (
             <div key={statusKey} className="space-y-2">
               <div className="flex items-center gap-2 px-1">
-                <span className={`p-1 rounded-lg ${config.color}`}>
+                <span className={`p-1 rounded-xl ${config.color}`}>
                   <Icon className="w-3.5 h-3.5" />
                 </span>
                 <span className="text-xs font-bold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
                   {config.label}
                 </span>
-                <span className="px-1.5 py-0.2 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 text-[10px] font-bold">
+                <span className="px-1.5 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 text-xs font-bold">
                   {list.length}
                 </span>
               </div>
@@ -158,7 +158,7 @@ export function KnowledgeScreen() {
                           {item.status !== 'learning' && (
                             <button
                               onClick={() => updateKnowledge(item.id, { status: 'learning' })}
-                              className="px-2 py-0.5 text-[10px] font-medium text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/40 rounded transition"
+                              className="px-2 py-0.5 text-xs font-medium text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/40 rounded-full transition"
                             >
                               {t.knowledge.learning}
                             </button>
@@ -166,7 +166,7 @@ export function KnowledgeScreen() {
                           {item.status !== 'mastered' && (
                             <button
                               onClick={() => updateKnowledge(item.id, { status: 'mastered' })}
-                              className="px-2 py-0.5 text-[10px] font-medium text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 rounded transition"
+                              className="px-2 py-0.5 text-xs font-medium text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 rounded-full transition"
                             >
                               {t.knowledge.mastered}
                             </button>
@@ -180,10 +180,10 @@ export function KnowledgeScreen() {
                         </p>
                       )}
 
-                      <div className="flex items-center justify-between gap-2 pt-1 border-t border-zinc-100 dark:border-zinc-800/60 text-[11px] text-zinc-400">
+                      <div className="flex items-center justify-between gap-2 pt-1 border-t border-zinc-100 dark:border-zinc-800/60 text-xs text-zinc-400">
                         <div className="flex items-center gap-2">
                           {item.project_name && (
-                            <span className="px-1.5 py-0.5 rounded-md font-medium text-[10px] bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300">
+                            <span className="px-1.5 py-0.5 rounded-full font-medium text-xs bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300">
                               {item.project_name}
                             </span>
                           )}

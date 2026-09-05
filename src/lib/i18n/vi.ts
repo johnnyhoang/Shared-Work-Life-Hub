@@ -1,4 +1,28 @@
 export const vi = {
+
+  // User-facing error messages, keyed by ApiErrorCode
+  errors: {
+    unauthorized: 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.',
+    forbidden: 'Bạn không có quyền thực hiện thao tác này.',
+    not_found: 'Không tìm thấy nội dung bạn cần.',
+    invalid_request: 'Thông tin chưa hợp lệ. Vui lòng kiểm tra lại.',
+    file_too_large: 'Tệp vượt quá giới hạn 25MB.',
+    storage_unavailable: 'Kho lưu trữ tệp chưa sẵn sàng. Vui lòng thử lại sau.',
+    upload_failed: 'Tải tệp lên không thành công. Vui lòng thử lại.',
+    delete_failed: 'Xóa không thành công. Vui lòng thử lại.',
+    fetch_failed: 'Không tải được dữ liệu. Vui lòng thử lại.',
+    save_failed: 'Lưu thay đổi không thành công. Vui lòng thử lại.',
+    invite_failed: 'Gửi lời mời không thành công. Vui lòng thử lại.',
+    member_update_failed: 'Cập nhật thành viên không thành công.',
+    workspace_create_failed: 'Không tạo được nhóm làm việc. Vui lòng thử lại.',
+    github_user_not_found: 'Không tìm thấy tài khoản GitHub này.',
+    github_failed: 'Không kết nối được tới GitHub. Vui lòng thử lại.',
+    notify_failed: 'Gửi thử không thành công. Kiểm tra lại cấu hình kênh.',
+    notify_missing_config: 'Bạn chưa nhập đủ thông tin cho kênh này.',
+    notify_unsupported: 'Kênh thông báo này chưa được hỗ trợ.',
+    network: 'Mất kết nối tới máy chủ. Kiểm tra mạng và thử lại.',
+    unknown: 'Đã có lỗi xảy ra. Vui lòng thử lại.',
+  },
   // Common & Navigation
   common: {
     hub: 'Hub',
@@ -27,6 +51,24 @@ export const vi = {
     roleAdmin: 'Trưởng nhóm (Lead)',
     roleMember: 'Thành viên',
     teamManagement: 'Quản lý thành viên',
+    confirm: 'Xác nhận',
+    you: 'Bạn',
+    configure: 'Cài đặt',
+  },
+
+  // Confirmation & prompt dialogs
+  dialog: {
+    deleteTaskTitle: 'Xóa công việc này?',
+    deleteTaskMessage: 'Công việc sẽ bị xóa vĩnh viễn và không thể khôi phục.',
+    deleteFileTitle: 'Xóa tệp đính kèm?',
+    deleteFileMessage: 'Tệp "{name}" sẽ bị xóa vĩnh viễn khỏi kho lưu trữ.',
+    removeMemberTitle: 'Xóa thành viên khỏi nhóm?',
+    removeMemberMessage: '{name} sẽ mất quyền truy cập vào không gian nhóm này.',
+    removeMemberConfirm: 'Xóa thành viên',
+    newProjectTitle: 'Tạo dự án mới',
+    newProjectLabel: 'Tên dự án',
+    newProjectPlaceholder: 'VD: Website 2026, Chiến dịch Tết...',
+    newProjectConfirm: 'Tạo dự án',
   },
 
   // Greetings & Attention
@@ -51,6 +93,7 @@ export const vi = {
     fullFeed: 'Xem toàn bộ nhật ký',
     quickTask: 'Tạo việc',
     quickIdea: 'Ghi ý tưởng',
+    todayFocus: 'Tổng quan công việc & cập nhật nhóm hôm nay',
   },
 
   // Stats
@@ -92,6 +135,15 @@ export const vi = {
     dueToday: 'Hạn chót hôm nay',
     waitingFor: 'Đang chờ',
     deleteConfirm: 'Bạn có chắc chắn muốn xóa công việc này không?',
+    manageSubtitle: 'Quản lý công việc cá nhân & phân công cho Team',
+    quickAddPlaceholder: '+ Thêm việc mới rồi bấm Enter (gõ @ để phân công)...',
+    noProjectOption: 'Dự án: Không',
+    tabMy: 'Của tôi',
+    tabTeam: 'Của Team',
+    tabDone: 'Đã xong',
+    emptyDone: 'Chưa có công việc nào hoàn thành.',
+    emptyTodo: 'Không có việc nào cần làm. Nhập ở trên để thêm việc mới!',
+    forYou: 'Việc của bạn',
   },
 
   // Status & Priority labels
@@ -126,6 +178,15 @@ export const vi = {
     tabKnowledge: 'Kiến thức',
     tabDecisions: 'Quyết định',
     tabActivity: 'Nhật ký',
+    tabAttachments: 'Tệp đính kèm',
+    hubSpaceTitle: 'Không gian chung',
+    hubSpaceSubtitle: 'Dự án, ý tưởng & ghi chú làm việc của Team',
+    importGitHubShort: 'Import GitHub',
+    importFromGitHub: 'Import từ GitHub',
+    emptyProjects: 'Chưa có dự án nào.',
+    emptyIdeas: 'Chưa có ý tưởng nào được ghi lại.',
+    activeTasksLabel: 'việc đang làm',
+    totalTasksLabel: 'tổng số việc',
   },
 
   // Ideas
@@ -189,6 +250,7 @@ export const vi = {
     joined: 'Gia nhập',
     makeLead: 'Đặt làm Lead',
     makeMember: 'Đặt làm Thành viên',
+    adminNote: 'Trưởng nhóm có quyền mời, phân công dự án và quản lý quyền hạn của các thành viên trong nhóm.',
   },
 
   // Login
@@ -201,6 +263,7 @@ export const vi = {
     password: 'Mật khẩu',
     signInEmail: 'Đăng nhập với Email',
     or: 'HOẶC',
+    googleSyncNote: 'Tài khoản của bạn sẽ được đồng bộ và phân quyền an toàn qua Google.',
   },
 
   // Notifications & Integrations
@@ -217,6 +280,7 @@ export const vi = {
     channels: 'Kênh nhận thông báo',
     testBtn: 'Gửi thử nghiệm',
     testing: 'Đang gửi...',
+    testSuccess: 'Đã gửi tin nhắn thử thành công!',
     saveSettings: 'Lưu cài đặt thông báo',
     saveSuccess: 'Đã lưu cấu hình thông báo thành công!',
     zaloTitle: 'Zalo (Việt Nam)',
@@ -234,6 +298,30 @@ export const vi = {
     botTokenPlaceholder: 'Nhập Bot Token (ví dụ: 123456:ABC-DEF)...',
     chatIdPlaceholder: 'Nhập Chat ID (ví dụ: 987654321)...',
     psidPlaceholder: 'Nhập Messenger PSID...',
+    recommended: 'Khuyến nghị',
+    emailDigestTitle: 'Email Digest (Bản tin qua Email)',
+    easy: 'Tiện lợi',
+    emailDigestDesc: 'Nhận bản tin tổng hợp công việc trực tiếp vào hộp thư Email mỗi sáng.',
+    recipientEmail: 'Địa chỉ Email nhận tin',
+  },
+
+  quickAction: {
+    task: 'Công việc',
+    idea: 'Ý tưởng',
+    taskPlaceholder: 'Tên việc cần làm (gõ @ để giao cho bạn bè)...',
+    ideaPlaceholder: 'Tiêu đề ý tưởng...',
+    notesPlaceholder: 'Ghi chú thêm (tùy chọn)...',
+  },
+
+  github: {
+    title: 'Kết nối & Import từ GitHub',
+    subtitle: 'Chọn repositories từ tài khoản GitHub để thêm vào danh sách dự án',
+    fetchBtn: 'Tải Repos',
+    filterPlaceholder: 'Lọc theo tên hoặc ngôn ngữ...',
+    loading: 'Đang tải danh sách Repositories từ GitHub...',
+    empty: 'Không tìm thấy repository nào. Hãy thử nhập username khác!',
+    added: 'Đã thêm',
+    addToHub: 'Thêm vào Hub',
   },
 };
 

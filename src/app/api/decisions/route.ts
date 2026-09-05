@@ -9,7 +9,7 @@ export async function GET(_request: NextRequest) {
     return NextResponse.json(decisions);
   } catch (error) {
     console.error('Failed to get decisions:', error);
-    return NextResponse.json({ error: 'Failed to fetch decisions' }, { status: 500 });
+    return NextResponse.json({ error: 'fetch_failed' }, { status: 500 });
   }
 }
 
@@ -20,6 +20,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(decision, { status: 201 });
   } catch (error) {
     console.error('Failed to create decision:', error);
-    return NextResponse.json({ error: 'Failed to create decision' }, { status: 500 });
+    return NextResponse.json({ error: 'save_failed' }, { status: 500 });
   }
 }

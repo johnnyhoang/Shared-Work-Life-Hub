@@ -42,3 +42,6 @@ next-env.d.ts
 
 # local sqlite data
 /data/*.db*
+
+# local ide / assistant folders
+.claude/

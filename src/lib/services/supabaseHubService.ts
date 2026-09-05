@@ -11,9 +11,12 @@ import {
   AttentionItem,
   WeeklyStats,
   UserRole,
+  Workspace,
+  WorkspaceMember,
+  WorkspaceInvitation,
 } from '@/types';
 
-export async function getSupabaseHubState(): Promise<HubState> {
+export async function getSupabaseHubState(requestedWorkspaceId?: string): Promise<HubState> {
   const supabase = await createClient();
 
   // 1. Get authenticated user
@@ -22,29 +25,17 @@ export async function getSupabaseHubState(): Promise<HubState> {
   } = await supabase.auth.getUser();
 
   // Fetch all profiles from sw_profiles
-  const { data: profiles, error: profileErr } = await supabase
+  let { data: rawProfiles } = await supabase
     .from('sw_profiles')
     .select('*')
     .order('created_at', { ascending: true });
 
-  let users: User[] = [];
+  let profiles = rawProfiles || [];
 
-  if (profiles && profiles.length > 0) {
-    users = profiles.map((p) => ({
-      id: p.id,
-      name: p.name,
-      avatar: p.avatar_url || '👤',
-      avatar_url: p.avatar_url,
-      email: p.email,
-      role: (p.role as UserRole) || 'member',
-      timezone: p.timezone || 'Asia/Ho_Chi_Minh',
-      location: p.location || 'Vietnam',
-      flag: p.flag || '🇻🇳',
-      color: p.color || '#3b82f6',
-      last_visited_at: p.last_visited_at || p.created_at,
-    }));
-  } else if (authUser) {
-    // If profiles table is empty but user is logged in, upsert profile
+  // Ensure currently authenticated user has a profile
+  let currentProfile = profiles.find((p) => p.id === authUser?.id);
+  if (authUser && !currentProfile) {
+    const isFirstUser = profiles.length === 0;
     const userName =
       authUser.user_metadata?.full_name ||
       authUser.user_metadata?.name ||
@@ -55,39 +46,212 @@ export async function getSupabaseHubState(): Promise<HubState> {
       authUser.user_metadata?.picture ||
       '👤';
 
-    const newProfile = {
+    currentProfile = {
       id: authUser.id,
       name: userName,
       avatar_url: userAvatar,
       email: authUser.email || '',
-      role: 'admin',
+      role: 'member',
       timezone: 'Asia/Ho_Chi_Minh',
       location: 'Vietnam',
       flag: '🇻🇳',
-      color: '#3b82f6',
+      color: isFirstUser ? '#3b82f6' : '#10b981',
       last_visited_at: new Date().toISOString(),
+      created_at: new Date().toISOString(),
     };
 
-    await supabase.from('sw_profiles').upsert(newProfile);
+    await supabase.from('sw_profiles').upsert(currentProfile);
+    profiles.push(currentProfile);
+  }
 
-    users = [
-      {
-        id: newProfile.id,
-        name: newProfile.name,
-        avatar: newProfile.avatar_url,
-        avatar_url: newProfile.avatar_url,
-        email: newProfile.email,
+  // 2. Fetch User Workspaces & Pending Invitations
+  let userWorkspaces: Workspace[] = [];
+  let pendingInvitations: WorkspaceInvitation[] = [];
+
+  if (authUser) {
+    // Check pending invitations for user's email
+    if (authUser.email) {
+      const { data: rawInvites } = await supabase
+        .from('sw_workspace_invitations')
+        .select(`
+          *,
+          workspace:sw_workspaces(name),
+          inviter:sw_profiles!sw_workspace_invitations_invited_by_fkey(name)
+        `)
+        .ilike('email', authUser.email)
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false });
+
+      pendingInvitations = (rawInvites || []).map((inv: any) => ({
+        id: inv.id,
+        workspace_id: inv.workspace_id,
+        workspace_name: inv.workspace?.name || 'Workspace',
+        email: inv.email,
+        invited_by: inv.invited_by,
+        invited_by_name: inv.inviter?.name || 'Trưởng nhóm',
+        role: inv.role as UserRole,
+        status: inv.status,
+        created_at: inv.created_at,
+      }));
+    }
+
+    // Fetch workspaces where user is owner or member
+    const { data: memberRecords } = await supabase
+      .from('sw_workspace_members')
+      .select('*, workspace:sw_workspaces(*)')
+      .eq('user_id', authUser.id);
+
+    const { data: ownedWorkspaces } = await supabase
+      .from('sw_workspaces')
+      .select('*')
+      .eq('owner_id', authUser.id);
+
+    const wsMap = new Map<string, Workspace>();
+
+    (ownedWorkspaces || []).forEach((w: any) => {
+      wsMap.set(w.id, {
+        id: w.id,
+        name: w.name,
+        slug: w.slug,
+        owner_id: w.owner_id,
         role: 'admin',
-        timezone: newProfile.timezone,
-        location: newProfile.location,
-        flag: newProfile.flag,
-        color: newProfile.color,
-        last_visited_at: newProfile.last_visited_at,
+        created_at: w.created_at,
+        updated_at: w.updated_at,
+      });
+    });
+
+    (memberRecords || []).forEach((m: any) => {
+      if (m.workspace) {
+        wsMap.set(m.workspace.id, {
+          id: m.workspace.id,
+          name: m.workspace.name,
+          slug: m.workspace.slug,
+          owner_id: m.workspace.owner_id,
+          role: (m.role as UserRole) || (m.workspace.owner_id === authUser.id ? 'admin' : 'member'),
+          created_at: m.workspace.created_at,
+          updated_at: m.workspace.updated_at,
+        });
+      }
+    });
+
+    userWorkspaces = Array.from(wsMap.values());
+
+    // If user has NO workspaces at all, auto-create their initial workspace
+    if (userWorkspaces.length === 0) {
+      const defaultWsName = currentProfile?.name ? `Không gian của ${currentProfile.name}` : 'Không gian làm việc';
+      const defaultSlug = (currentProfile?.name || 'workspace')
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, '-') + '-' + Math.random().toString(36).substring(2, 6);
+
+      const { data: newWs } = await supabase
+        .from('sw_workspaces')
+        .insert({
+          name: defaultWsName,
+          slug: defaultSlug,
+          owner_id: authUser.id,
+        })
+        .select()
+        .single();
+
+      if (newWs) {
+        // Add member record as admin
+        await supabase.from('sw_workspace_members').insert({
+          workspace_id: newWs.id,
+          user_id: authUser.id,
+          role: 'admin',
+        });
+
+        // Migrate any unassigned tasks/projects to this initial workspace
+        await supabase.from('sw_projects').update({ workspace_id: newWs.id }).is('workspace_id', null);
+        await supabase.from('sw_tasks').update({ workspace_id: newWs.id }).is('workspace_id', null);
+        await supabase.from('sw_ideas').update({ workspace_id: newWs.id }).is('workspace_id', null);
+        await supabase.from('sw_knowledge').update({ workspace_id: newWs.id }).is('workspace_id', null);
+        await supabase.from('sw_decisions').update({ workspace_id: newWs.id }).is('workspace_id', null);
+        await supabase.from('sw_activities').update({ workspace_id: newWs.id }).is('workspace_id', null);
+
+        const initialWs: Workspace = {
+          id: newWs.id,
+          name: newWs.name,
+          slug: newWs.slug,
+          owner_id: newWs.owner_id,
+          role: 'admin',
+          created_at: newWs.created_at,
+        };
+        userWorkspaces = [initialWs];
+      }
+    }
+  }
+
+  // 3. Resolve active workspace
+  let activeWorkspace: Workspace | null = null;
+  if (userWorkspaces.length > 0) {
+    if (requestedWorkspaceId) {
+      activeWorkspace = userWorkspaces.find((w) => w.id === requestedWorkspaceId) || userWorkspaces[0];
+    } else {
+      activeWorkspace = userWorkspaces[0];
+    }
+  }
+
+  // 4. Fetch Workspace Members for the active workspace
+  let workspaceMembers: WorkspaceMember[] = [];
+  let workspaceUsers: User[] = [];
+
+  if (activeWorkspace) {
+    const { data: rawMembers } = await supabase
+      .from('sw_workspace_members')
+      .select(`
+        *,
+        profile:sw_profiles(*)
+      `)
+      .eq('workspace_id', activeWorkspace.id);
+
+    workspaceMembers = (rawMembers || []).map((m: any) => ({
+      id: m.id,
+      workspace_id: m.workspace_id,
+      user_id: m.user_id,
+      role: m.role as UserRole,
+      user_name: m.profile?.name,
+      user_email: m.profile?.email,
+      user_avatar: m.profile?.avatar_url,
+      joined_at: m.joined_at,
+    }));
+
+    workspaceUsers = (rawMembers || [])
+      .filter((m: any) => m.profile)
+      .map((m: any) => ({
+        id: m.profile.id,
+        name: m.profile.name,
+        avatar: m.profile.avatar_url || '👤',
+        avatar_url: m.profile.avatar_url,
+        email: m.profile.email,
+        role: (m.role as UserRole) || 'member',
+        timezone: m.profile.timezone || 'Asia/Ho_Chi_Minh',
+        location: m.profile.location || 'Vietnam',
+        flag: m.profile.flag || '🇻🇳',
+        color: m.profile.color || '#3b82f6',
+        last_visited_at: m.profile.last_visited_at || m.profile.created_at,
+      }));
+  }
+
+  // Fallback if empty
+  if (workspaceUsers.length === 0 && currentProfile) {
+    workspaceUsers = [
+      {
+        id: currentProfile.id,
+        name: currentProfile.name,
+        avatar: currentProfile.avatar_url || '👤',
+        avatar_url: currentProfile.avatar_url,
+        email: currentProfile.email,
+        role: (activeWorkspace?.role as UserRole) || 'admin',
+        timezone: currentProfile.timezone,
+        location: currentProfile.location,
+        flag: currentProfile.flag,
+        color: currentProfile.color,
+        last_visited_at: currentProfile.last_visited_at,
       },
     ];
-  } else {
-    // Unauthenticated placeholder fallback (clean empty user)
-    users = [
+  } else if (workspaceUsers.length === 0) {
+    workspaceUsers = [
       {
         id: 'guest',
         name: 'Guest',
@@ -104,16 +268,25 @@ export async function getSupabaseHubState(): Promise<HubState> {
   }
 
   const currentUser = authUser
-    ? users.find((u) => u.id === authUser.id) || users[0]
-    : users[0];
+    ? workspaceUsers.find((u) => u.id === authUser.id) || workspaceUsers[0]
+    : workspaceUsers[0];
 
-  const partnerUser = users.find((u) => u.id !== currentUser.id) || currentUser;
+  // Set user role to active workspace role
+  if (activeWorkspace?.role) {
+    currentUser.role = activeWorkspace.role;
+  }
 
-  // 2. Fetch Projects (sw_projects)
-  const { data: rawProjects } = await supabase
+  // 5. Fetch Projects (sw_projects) scoped to active workspace
+  let projectQuery = supabase
     .from('sw_projects')
     .select('*, sw_tasks(id, status)')
     .order('updated_at', { ascending: false });
+
+  if (activeWorkspace) {
+    projectQuery = projectQuery.or(`workspace_id.eq.${activeWorkspace.id},workspace_id.is.null`);
+  }
+
+  const { data: rawProjects } = await projectQuery;
 
   const projects: Project[] = (rawProjects || []).map((p: any) => {
     const pTasks = p.sw_tasks || [];
@@ -121,6 +294,7 @@ export async function getSupabaseHubState(): Promise<HubState> {
     const done = pTasks.filter((t: any) => t.status === 'done').length;
     return {
       id: p.id,
+      workspace_id: p.workspace_id,
       name: p.name,
       description: p.description || '',
       color: p.color || '#3b82f6',
@@ -134,8 +308,8 @@ export async function getSupabaseHubState(): Promise<HubState> {
     };
   });
 
-  // 3. Fetch Tasks (sw_tasks)
-  const { data: rawTasks } = await supabase
+  // 6. Fetch Tasks (sw_tasks) scoped to active workspace
+  let taskQuery = supabase
     .from('sw_tasks')
     .select(
       `
@@ -148,8 +322,15 @@ export async function getSupabaseHubState(): Promise<HubState> {
     )
     .order('updated_at', { ascending: false });
 
+  if (activeWorkspace) {
+    taskQuery = taskQuery.or(`workspace_id.eq.${activeWorkspace.id},workspace_id.is.null`);
+  }
+
+  const { data: rawTasks } = await taskQuery;
+
   const tasks: Task[] = (rawTasks || []).map((t: any) => ({
     id: t.id,
+    workspace_id: t.workspace_id,
     title: t.title,
     description: t.description || '',
     project_id: t.project_id,
@@ -167,14 +348,21 @@ export async function getSupabaseHubState(): Promise<HubState> {
     comment_count: t.comments?.length || 0,
   }));
 
-  // 4. Fetch Ideas (sw_ideas)
-  const { data: rawIdeas } = await supabase
+  // 7. Fetch Ideas (sw_ideas) scoped to active workspace
+  let ideaQuery = supabase
     .from('sw_ideas')
     .select('*, project:sw_projects(name), creator:sw_profiles(name)')
     .order('updated_at', { ascending: false });
 
+  if (activeWorkspace) {
+    ideaQuery = ideaQuery.or(`workspace_id.eq.${activeWorkspace.id},workspace_id.is.null`);
+  }
+
+  const { data: rawIdeas } = await ideaQuery;
+
   const ideas: Idea[] = (rawIdeas || []).map((i: any) => ({
     id: i.id,
+    workspace_id: i.workspace_id,
     title: i.title,
     description: i.description || '',
     status: i.status,
@@ -186,14 +374,21 @@ export async function getSupabaseHubState(): Promise<HubState> {
     creator_name: i.creator?.name,
   }));
 
-  // 5. Fetch Knowledge (sw_knowledge)
-  const { data: rawKnowledge } = await supabase
+  // 8. Fetch Knowledge (sw_knowledge) scoped to active workspace
+  let knowledgeQuery = supabase
     .from('sw_knowledge')
     .select('*, project:sw_projects(name), user:sw_profiles(name)')
     .order('updated_at', { ascending: false });
 
+  if (activeWorkspace) {
+    knowledgeQuery = knowledgeQuery.or(`workspace_id.eq.${activeWorkspace.id},workspace_id.is.null`);
+  }
+
+  const { data: rawKnowledge } = await knowledgeQuery;
+
   const knowledge: Knowledge[] = (rawKnowledge || []).map((k: any) => ({
     id: k.id,
+    workspace_id: k.workspace_id,
     topic: k.topic,
     notes: k.notes || '',
     status: k.status,
@@ -205,14 +400,21 @@ export async function getSupabaseHubState(): Promise<HubState> {
     user_name: k.user?.name,
   }));
 
-  // 6. Fetch Decisions (sw_decisions)
-  const { data: rawDecisions } = await supabase
+  // 9. Fetch Decisions (sw_decisions) scoped to active workspace
+  let decisionQuery = supabase
     .from('sw_decisions')
     .select('*, project:sw_projects(name), author:sw_profiles(name)')
     .order('created_at', { ascending: false });
 
+  if (activeWorkspace) {
+    decisionQuery = decisionQuery.or(`workspace_id.eq.${activeWorkspace.id},workspace_id.is.null`);
+  }
+
+  const { data: rawDecisions } = await decisionQuery;
+
   const decisions: Decision[] = (rawDecisions || []).map((d: any) => ({
     id: d.id,
+    workspace_id: d.workspace_id,
     title: d.title,
     reason: d.reason || '',
     project_id: d.project_id,
@@ -222,8 +424,8 @@ export async function getSupabaseHubState(): Promise<HubState> {
     author_name: d.author?.name,
   }));
 
-  // 7. Fetch Activities (sw_activities)
-  const { data: rawActivities } = await supabase
+  // 10. Fetch Activities (sw_activities) scoped to active workspace
+  let activityQuery = supabase
     .from('sw_activities')
     .select(
       `
@@ -236,8 +438,15 @@ export async function getSupabaseHubState(): Promise<HubState> {
     .order('created_at', { ascending: false })
     .limit(40);
 
+  if (activeWorkspace) {
+    activityQuery = activityQuery.or(`workspace_id.eq.${activeWorkspace.id},workspace_id.is.null`);
+  }
+
+  const { data: rawActivities } = await activityQuery;
+
   const recentActivities: Activity[] = (rawActivities || []).map((a: any) => ({
     id: a.id,
+    workspace_id: a.workspace_id,
     actor_id: a.actor_id,
     target_user_id: a.target_user_id,
     entity_type: a.entity_type,
@@ -253,7 +462,7 @@ export async function getSupabaseHubState(): Promise<HubState> {
     project_name: a.project?.name,
   }));
 
-  // 8. Since Last Visit
+  // 11. Since Last Visit
   const sinceChanges = recentActivities.filter(
     (a) => new Date(a.created_at).getTime() > new Date(currentUser.last_visited_at).getTime()
   );
@@ -263,7 +472,7 @@ export async function getSupabaseHubState(): Promise<HubState> {
     changes: sinceChanges,
   };
 
-  // 9. Weekly Stats
+  // 12. Weekly Stats
   const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
   const weeklyStats: WeeklyStats = {
     tasks_completed: recentActivities.filter(
@@ -277,36 +486,36 @@ export async function getSupabaseHubState(): Promise<HubState> {
     decisions_made: decisions.filter((d) => d.created_at >= oneWeekAgo).length,
   };
 
-  // 10. Attention
+  // 13. Attention
   const todayStr = new Date().toISOString().split('T')[0];
   const myActionTasks = tasks.filter(
     (t) => t.assignee_id === currentUser.id && t.status !== 'done'
   );
 
   const actionRequired: AttentionItem[] = myActionTasks.map((task) => {
-    let reason = 'Assigned to you';
+    let reason = 'Được giao cho bạn';
     let severity: 'urgent' | 'high' | 'normal' = 'normal';
 
     if (task.priority === 'urgent') {
       severity = 'urgent';
-      reason = 'Urgent priority';
+      reason = 'Nhiệm vụ khẩn cấp';
     } else if (task.priority === 'high') {
       severity = 'high';
-      reason = 'High priority';
+      reason = 'Ưu tiên cao';
     }
 
     if (task.due_date) {
       if (task.due_date < todayStr) {
         severity = 'urgent';
-        reason = 'Overdue task';
+        reason = 'Đã quá hạn';
       } else if (task.due_date === todayStr) {
         severity = 'high';
-        reason = 'Due today';
+        reason = 'Đến hạn hôm nay';
       }
     }
 
     if (task.creator_id !== currentUser.id) {
-      reason = `${task.creator_name || 'Team member'} assigned to you`;
+      reason = `${task.creator_name || 'Đồng đội'} giao cho bạn`;
     }
 
     return {
@@ -324,14 +533,13 @@ export async function getSupabaseHubState(): Promise<HubState> {
   const waiting: AttentionItem[] = waitingTasks.map((task) => ({
     type: 'waiting',
     task,
-    reason: `Waiting on ${task.assignee_name || 'Team'} (${task.status.replace('_', ' ')})`,
+    reason: `Đang chờ ${task.assignee_name || 'Thành viên'} (${task.status.replace('_', ' ')})`,
     severity: task.priority === 'urgent' ? 'urgent' : 'normal',
   }));
 
   return {
     currentUser,
-    partnerUser,
-    users,
+    users: workspaceUsers,
     projects,
     tasks,
     ideas,
@@ -344,11 +552,32 @@ export async function getSupabaseHubState(): Promise<HubState> {
       actionRequired,
       waiting,
     },
+    activeWorkspace,
+    workspaces: userWorkspaces,
+    pendingInvitations,
+    workspaceMembers,
   };
 }
 
 export async function updateProfileRole(userId: string, role: UserRole) {
   const supabase = await createClient();
+
+  const {
+    data: { user: caller },
+  } = await supabase.auth.getUser();
+
+  if (caller) {
+    const { data: callerProfile } = await supabase
+      .from('sw_profiles')
+      .select('role')
+      .eq('id', caller.id)
+      .maybeSingle();
+
+    if (callerProfile?.role !== 'admin') {
+      throw new Error('Chỉ Trưởng nhóm (Lead) mới có quyền thay đổi vai trò của thành viên.');
+    }
+  }
+
   const { data, error } = await supabase
     .from('sw_profiles')
     .update({ role })

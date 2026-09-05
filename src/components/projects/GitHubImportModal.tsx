@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useHub } from '@/context/HubContext';
 import { useI18n } from '@/lib/i18n';
+import { errorText } from '@/lib/errorMessages';
 import {
   X,
   Search,
@@ -33,7 +34,7 @@ export function GitHubImportModal({
   onClose: () => void;
 }) {
   const { createProject, hubState } = useHub();
-  const { language } = useI18n();
+  const { t } = useI18n();
 
   const [username, setUsername] = useState('johnnyhoang');
   const [repos, setRepos] = useState<GitHubRepo[]>([]);
@@ -57,13 +58,13 @@ export function GitHubImportModal({
       const res = await fetch(`/api/github/repos?username=${encodeURIComponent(userToFetch.trim())}`);
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error || 'Failed to fetch repositories');
+        throw new Error(data.error || 'github_failed');
       }
       setRepos(data.repos || []);
       localStorage.setItem('hub_github_username', userToFetch.trim());
     } catch (err: unknown) {
       const error = err as Error;
-      setErrorMsg(error.message || 'Error fetching GitHub repositories');
+      setErrorMsg(errorText(t.errors, error));
     } finally {
       setIsLoading(false);
     }
@@ -110,7 +111,7 @@ export function GitHubImportModal({
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-xs">
       <div
-        className="w-full max-w-xl max-h-[90vh] bg-white dark:bg-zinc-900 rounded-t-3xl sm:rounded-3xl shadow-2xl border border-zinc-200 dark:border-zinc-800 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-6 duration-200"
+        className="w-full max-w-xl max-h-[90vh] bg-white dark:bg-zinc-900 rounded-t-2xl sm:rounded-2xl shadow-2xl border border-zinc-200 dark:border-zinc-800 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-6 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -123,12 +124,10 @@ export function GitHubImportModal({
             </div>
             <div>
               <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-50">
-                {language === 'vi' ? 'Kết nối & Import từ GitHub' : 'Import from GitHub'}
+                {t.github.title}
               </h2>
               <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                {language === 'vi'
-                  ? 'Chọn repositories từ tài khoản GitHub để thêm vào danh sách dự án'
-                  : 'Select repositories from your GitHub account to add as projects'}
+                {t.github.subtitle}
               </p>
             </div>
           </div>
@@ -169,7 +168,7 @@ export function GitHubImportModal({
               className="px-4 py-2.5 bg-zinc-900 hover:bg-black dark:bg-white dark:hover:bg-zinc-100 dark:text-zinc-900 text-white text-xs sm:text-sm font-bold rounded-2xl shadow-xs transition flex items-center gap-1.5 shrink-0"
             >
               {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
-              <span>{language === 'vi' ? 'Tải Repos' : 'Fetch'}</span>
+              <span>{t.github.fetchBtn}</span>
             </button>
           </form>
 
@@ -180,7 +179,7 @@ export function GitHubImportModal({
                 type="text"
                 value={filterText}
                 onChange={(e) => setFilterText(e.target.value)}
-                placeholder={language === 'vi' ? 'Lọc theo tên hoặc ngôn ngữ...' : 'Filter repos by name or language...'}
+                placeholder={t.github.filterPlaceholder}
                 className="w-full pl-8 pr-3 py-1.5 text-xs rounded-xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100"
               />
             </div>
@@ -199,14 +198,12 @@ export function GitHubImportModal({
             <div className="py-16 text-center space-y-3">
               <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto" />
               <p className="text-xs sm:text-sm font-bold text-zinc-500">
-                {language === 'vi' ? 'Đang tải danh sách Repositories từ GitHub...' : 'Loading repositories from GitHub...'}
+                {t.github.loading}
               </p>
             </div>
           ) : filteredRepos.length === 0 ? (
             <div className="py-12 text-center text-xs sm:text-sm text-zinc-400">
-              {language === 'vi'
-                ? 'Không tìm thấy repository nào. Hãy thử nhập username khác!'
-                : 'No repositories found.'}
+              {t.github.empty}
             </div>
           ) : (
             filteredRepos.map((repo) => {
@@ -260,7 +257,7 @@ export function GitHubImportModal({
                   {isAlreadyAdded || isJustImported ? (
                     <span className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 text-xs font-bold shrink-0">
                       <Check className="w-3.5 h-3.5" />
-                      <span>{language === 'vi' ? 'Đã thêm' : 'Added'}</span>
+                      <span>{t.github.added}</span>
                     </span>
                   ) : (
                     <button
@@ -273,7 +270,7 @@ export function GitHubImportModal({
                       ) : (
                         <FolderPlus className="w-3.5 h-3.5" />
                       )}
-                      <span>{language === 'vi' ? 'Thêm vào Hub' : 'Add to Hub'}</span>
+                      <span>{t.github.addToHub}</span>
                     </button>
                   )}
                 </div>

@@ -3,6 +3,7 @@ import { Be_Vietnam_Pro, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { HubProvider } from "@/context/HubContext";
 import { I18nProvider } from "@/lib/i18n";
+import { ConfirmProvider } from "@/components/common/ConfirmProvider";
 
 const beVietnamPro = Be_Vietnam_Pro({
   subsets: ["latin", "vietnamese"],
@@ -29,6 +30,13 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   title: "Shared Work & Life Hub",
   description: "Shared command center for remote collaboration across time zones",
+  icons: {
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+    apple: "/apple-icon.svg",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -52,7 +60,9 @@ export default function RootLayout({
         className="min-h-full flex flex-col bg-zinc-50/80 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50 font-sans"
       >
         <I18nProvider>
-          <HubProvider>{children}</HubProvider>
+          <ConfirmProvider>
+            <HubProvider>{children}</HubProvider>
+          </ConfirmProvider>
         </I18nProvider>
       </body>
     </html>

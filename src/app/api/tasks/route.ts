@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(tasks);
   } catch (error) {
     console.error('Failed to get tasks:', error);
-    return NextResponse.json({ error: 'Failed to fetch tasks' }, { status: 500 });
+    return NextResponse.json({ error: 'fetch_failed' }, { status: 500 });
   }
 }
 
@@ -26,6 +26,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(task, { status: 201 });
   } catch (error) {
     console.error('Failed to create task:', error);
-    return NextResponse.json({ error: 'Failed to create task' }, { status: 500 });
+    return NextResponse.json({ error: 'save_failed' }, { status: 500 });
   }
 }

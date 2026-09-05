@@ -5,6 +5,7 @@ import { useHub } from '@/context/HubContext';
 import { useI18n } from '@/lib/i18n';
 import { IdeaStatus } from '@/types';
 import { formatRelativeTime } from '@/lib/dateUtils';
+import { AttachmentGallery } from '../common/AttachmentGallery';
 import {
   Plus,
   ArrowRight,
@@ -12,15 +13,19 @@ import {
   Sparkles,
   HelpCircle,
   Calendar,
+  Paperclip,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 
 export function IdeasScreen() {
   const { hubState, createIdea, updateIdea, convertIdea } = useHub();
-  const { t, language } = useI18n();
+  const { t } = useI18n();
   const [newTitle, setNewTitle] = useState('');
   const [newDesc, setNewDesc] = useState('');
   const [selectedProjectId, setSelectedProjectId] = useState<string>('');
   const [isQuickAdding, setIsQuickAdding] = useState(false);
+  const [expandedIdeaId, setExpandedIdeaId] = useState<string | null>(null);
 
   if (!hubState) return null;
 
@@ -94,7 +99,7 @@ export function IdeasScreen() {
             <select
               value={selectedProjectId}
               onChange={(e) => setSelectedProjectId(e.target.value)}
-              className="px-2 py-1 text-xs rounded-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300"
+              className="px-2 py-1 text-xs rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300"
             >
               <option value="">{t.common.noProject}</option>
               {hubState.projects.map((p) => (
@@ -115,7 +120,7 @@ export function IdeasScreen() {
               <button
                 type="submit"
                 disabled={!newTitle.trim()}
-                className="px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-lg shadow-xs"
+                className="px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold rounded-xl shadow-xs"
               >
                 {t.ideas.saveIdea}
               </button>
@@ -133,13 +138,13 @@ export function IdeasScreen() {
           return (
             <div key={stage.status} className="space-y-2">
               <div className="flex items-center gap-2 px-1">
-                <span className={`p-1 rounded-lg ${stage.color}`}>
+                <span className={`p-1 rounded-xl ${stage.color}`}>
                   <Icon className="w-3.5 h-3.5" />
                 </span>
                 <span className="text-xs font-bold uppercase tracking-wider text-zinc-700 dark:text-zinc-300">
                   {stage.label}
                 </span>
-                <span className="px-1.5 py-0.2 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 text-[10px] font-bold">
+                <span className="px-1.5 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 text-xs font-bold">
                   {stageIdeas.length}
                 </span>
               </div>
@@ -159,7 +164,7 @@ export function IdeasScreen() {
                         <h4 className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
                           {idea.title}
                         </h4>
-                        <span className="text-[10px] text-zinc-400 shrink-0">
+                        <span className="text-xs text-zinc-400 shrink-0">
                           {formatRelativeTime(idea.created_at)}
                         </span>
                       </div>
@@ -170,55 +175,86 @@ export function IdeasScreen() {
                         </p>
                       )}
 
-                      <div className="flex items-center justify-between gap-2 pt-1 border-t border-zinc-100 dark:border-zinc-800/60 text-[11px]">
+                      <div className="flex items-center justify-between gap-2 pt-1 border-t border-zinc-100 dark:border-zinc-800/60 text-xs">
                         <div className="flex items-center gap-2">
                           {idea.project_name && (
-                            <span className="px-1.5 py-0.5 rounded-md font-medium text-[10px] bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300">
+                            <span className="px-1.5 py-0.5 rounded-full font-medium text-xs bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300">
                               {idea.project_name}
                             </span>
                           )}
-                          <span className="text-zinc-400 text-[10px]">
+                          <span className="text-zinc-400 text-xs">
                             {idea.creator_name}
                           </span>
                         </div>
 
                         {/* Actions */}
-                        {idea.status !== 'converted' ? (
-                          <div className="flex items-center gap-1.5">
-                            {idea.status === 'idea' && (
-                              <button
-                                onClick={() => updateIdea(idea.id, { status: 'maybe' })}
-                                className="px-2 py-0.5 text-[10px] font-medium text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/40 rounded transition"
-                              >
-                                → {t.ideas.maybe}
-                              </button>
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => setExpandedIdeaId(expandedIdeaId === idea.id ? null : idea.id)}
+                            className={`px-2 py-0.5 text-xs font-medium rounded-full transition flex items-center gap-1 ${
+                              expandedIdeaId === idea.id
+                                ? 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300'
+                                : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800'
+                            }`}
+                          >
+                            <Paperclip className="w-3 h-3" />
+                            <span>{(t.projects as any).tabAttachments || 'Tệp đính kèm'}</span>
+                            {expandedIdeaId === idea.id ? (
+                              <ChevronUp className="w-2.5 h-2.5" />
+                            ) : (
+                              <ChevronDown className="w-2.5 h-2.5" />
                             )}
-                            {idea.status === 'maybe' && (
+                          </button>
+
+                          {idea.status !== 'converted' ? (
+                            <>
+                              {idea.status === 'idea' && (
+                                <button
+                                  onClick={() => updateIdea(idea.id, { status: 'maybe' })}
+                                  className="px-2 py-0.5 text-xs font-medium text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/40 rounded-full transition"
+                                >
+                                  → {t.ideas.maybe}
+                                </button>
+                              )}
+                              {idea.status === 'maybe' && (
+                                <button
+                                  onClick={() => updateIdea(idea.id, { status: 'planned' })}
+                                  className="px-2 py-0.5 text-xs font-medium text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950/40 rounded-full transition"
+                                >
+                                  → {t.ideas.planned}
+                                </button>
+                              )}
                               <button
-                                onClick={() => updateIdea(idea.id, { status: 'planned' })}
-                                className="px-2 py-0.5 text-[10px] font-medium text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950/40 rounded transition"
+                                onClick={() => {
+                                  const target = hubState.users[0]?.id || hubState.currentUser.id;
+                                  convertIdea(idea.id, target);
+                                }}
+                                className="px-2 py-0.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded-full transition flex items-center gap-1 shadow-xs"
                               >
-                                → {t.ideas.planned}
+                                <span>{t.ideas.convertToTask}</span>
+                                <ArrowRight className="w-2.5 h-2.5" />
                               </button>
-                            )}
-                            <button
-                              onClick={() => {
-                                const target = hubState.users[0]?.id || hubState.currentUser.id;
-                                convertIdea(idea.id, target);
-                              }}
-                              className="px-2 py-0.5 text-[10px] font-bold text-white bg-emerald-600 hover:bg-emerald-700 rounded transition flex items-center gap-1 shadow-2xs"
-                            >
-                              <span>{t.ideas.convertToTask}</span>
-                              <ArrowRight className="w-2.5 h-2.5" />
-                            </button>
-                          </div>
-                        ) : (
-                          <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                            <CheckCircle2 className="w-3 h-3" />
-                            <span>{t.ideas.convertedBadge}</span>
-                          </span>
-                        )}
+                            </>
+                          ) : (
+                            <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                              <CheckCircle2 className="w-3 h-3" />
+                              <span>{t.ideas.convertedBadge}</span>
+                            </span>
+                          )}
+                        </div>
                       </div>
+
+                      {/* Expandable Attachment Gallery */}
+                      {expandedIdeaId === idea.id && (
+                        <div className="mt-2 pt-2 border-t border-zinc-100 dark:border-zinc-800/80 animate-in fade-in duration-200">
+                          <AttachmentGallery
+                            entityType="idea"
+                            entityId={idea.id}
+                            workspaceId={idea.workspace_id}
+                          />
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>

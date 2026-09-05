@@ -106,6 +106,7 @@ export async function createSupabaseTask(params: {
   priority?: TaskPriority;
   due_date?: string | null;
   status?: TaskStatus;
+  workspace_id?: string | null;
 }) {
   const supabase = await createClient();
 
@@ -120,6 +121,7 @@ export async function createSupabaseTask(params: {
       priority: params.priority || 'medium',
       status: params.status || 'todo',
       due_date: params.due_date || null,
+      workspace_id: params.workspace_id || null,
     })
     .select()
     .single();
@@ -136,6 +138,7 @@ export async function createSupabaseTask(params: {
     summary: `Created task "${params.title.trim()}"`,
     details: params.description || '',
     project_id: params.project_id || null,
+    workspace_id: params.workspace_id || null,
   });
 
   return task;
@@ -245,6 +248,7 @@ export async function createSupabaseProject(params: {
   icon?: string;
   status?: ProjectStatus;
   actor_id?: string;
+  workspace_id?: string | null;
 }) {
   const supabase = await createClient();
   const { data: project, error } = await supabase
@@ -256,6 +260,7 @@ export async function createSupabaseProject(params: {
       icon: params.icon || 'folder',
       status: params.status || 'active',
       created_by: params.actor_id || null,
+      workspace_id: params.workspace_id || null,
     })
     .select()
     .single();
@@ -270,6 +275,7 @@ export async function createSupabaseProject(params: {
       action_type: 'created',
       summary: `Created project "${project.name}"`,
       project_id: project.id,
+      workspace_id: params.workspace_id || null,
     });
   }
 
@@ -332,6 +338,7 @@ export async function createSupabaseIdea(params: {
   project_id?: string | null;
   creator_id: string;
   status?: IdeaStatus;
+  workspace_id?: string | null;
 }) {
   const supabase = await createClient();
   const { data: idea, error } = await supabase
@@ -342,6 +349,7 @@ export async function createSupabaseIdea(params: {
       project_id: params.project_id || null,
       creator_id: params.creator_id,
       status: params.status || 'idea',
+      workspace_id: params.workspace_id || null,
     })
     .select()
     .single();
@@ -355,6 +363,7 @@ export async function createSupabaseIdea(params: {
     action_type: 'created',
     summary: `Added idea "${idea.title}"`,
     project_id: params.project_id || null,
+    workspace_id: params.workspace_id || null,
   });
 
   return idea;
@@ -394,6 +403,7 @@ export async function convertSupabaseIdea(id: string, assignee_id: string, actor
     assignee_id,
     priority: 'medium',
     status: 'todo',
+    workspace_id: idea.workspace_id,
   });
 
   await supabase
@@ -437,6 +447,7 @@ export async function createSupabaseKnowledge(params: {
   status?: KnowledgeStatus;
   project_id?: string | null;
   user_id: string;
+  workspace_id?: string | null;
 }) {
   const supabase = await createClient();
   const { data: knowledge, error } = await supabase
@@ -447,6 +458,7 @@ export async function createSupabaseKnowledge(params: {
       status: params.status || 'to_learn',
       project_id: params.project_id || null,
       user_id: params.user_id,
+      workspace_id: params.workspace_id || null,
     })
     .select()
     .single();
@@ -460,6 +472,7 @@ export async function createSupabaseKnowledge(params: {
     action_type: 'created',
     summary: `Added learning topic "${knowledge.topic}"`,
     project_id: params.project_id || null,
+    workspace_id: params.workspace_id || null,
   });
 
   return knowledge;
@@ -511,6 +524,7 @@ export async function createSupabaseDecision(params: {
   reason: string;
   project_id?: string | null;
   created_by_id: string;
+  workspace_id?: string | null;
 }) {
   const supabase = await createClient();
   const { data: decision, error } = await supabase
@@ -520,6 +534,7 @@ export async function createSupabaseDecision(params: {
       reason: params.reason.trim(),
       project_id: params.project_id || null,
       created_by_id: params.created_by_id,
+      workspace_id: params.workspace_id || null,
     })
     .select()
     .single();
@@ -534,6 +549,7 @@ export async function createSupabaseDecision(params: {
     summary: `Recorded decision: "${decision.title}"`,
     details: decision.reason,
     project_id: params.project_id || null,
+    workspace_id: params.workspace_id || null,
   });
 
   return decision;
@@ -735,4 +751,267 @@ export async function getAllUsersWithNotificationSettings() {
     },
   }));
 }
+
+// ==========================================
+// WORKSPACES & INVITATIONS
+// ==========================================
+
+export async function createSupabaseWorkspace(name: string, ownerId: string, description?: string) {
+  const supabase = await createClient();
+
+  // 1. Ensure user profile exists in sw_profiles first to satisfy foreign key
+  const { data: profile } = await supabase
+    .from('sw_profiles')
+    .select('id')
+    .eq('id', ownerId)
+    .maybeSingle();
+
+  if (!profile) {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (user) {
+      const userName =
+        user.user_metadata?.full_name ||
+        user.user_metadata?.name ||
+        user.email?.split('@')[0] ||
+        'Member';
+      const userAvatar =
+        user.user_metadata?.avatar_url ||
+        user.user_metadata?.picture ||
+        '👤';
+
+      await supabase.from('sw_profiles').upsert({
+        id: user.id,
+        name: userName,
+        avatar_url: userAvatar,
+        email: user.email || '',
+        role: 'member',
+        timezone: 'Asia/Ho_Chi_Minh',
+        location: 'Vietnam',
+        flag: '🇻🇳',
+        color: '#3b82f6',
+      });
+    }
+  }
+
+  const cleanName = name.trim();
+  const slug = cleanName.toLowerCase().replace(/[^a-z0-9]/g, '-') + '-' + Math.random().toString(36).substring(2, 6);
+
+  const insertPayload: any = {
+    name: cleanName,
+    slug,
+    owner_id: ownerId,
+  };
+
+  const { data: ws, error: wsErr } = await supabase
+    .from('sw_workspaces')
+    .insert(insertPayload)
+    .select()
+    .single();
+
+  if (wsErr) {
+    console.error('Error inserting workspace:', wsErr);
+    throw wsErr;
+  }
+
+  // 2. Add owner as admin member
+  const { error: memErr } = await supabase.from('sw_workspace_members').upsert({
+    workspace_id: ws.id,
+    user_id: ownerId,
+    role: 'admin',
+  });
+
+  if (memErr) {
+    console.error('Error adding member to workspace:', memErr);
+  }
+
+  return ws;
+}
+
+export async function inviteMemberToWorkspace(params: {
+  workspaceId: string;
+  email: string;
+  role: 'admin' | 'member';
+  invitedBy: string;
+}) {
+  const supabase = await createClient();
+  const cleanEmail = params.email.trim().toLowerCase();
+
+  // 1. Check if user with this email is already a member
+  const { data: existingUser } = await supabase
+    .from('sw_profiles')
+    .select('id')
+    .ilike('email', cleanEmail)
+    .maybeSingle();
+
+  if (existingUser) {
+    const { data: isMember } = await supabase
+      .from('sw_workspace_members')
+      .select('id')
+      .eq('workspace_id', params.workspaceId)
+      .eq('user_id', existingUser.id)
+      .maybeSingle();
+
+    if (isMember) {
+      throw new Error('Thành viên này đã tham gia nhóm rồi.');
+    }
+  }
+
+  // 2. Check if there is already a pending invitation
+  const { data: existingInvite } = await supabase
+    .from('sw_workspace_invitations')
+    .select('id')
+    .eq('workspace_id', params.workspaceId)
+    .ilike('email', cleanEmail)
+    .eq('status', 'pending')
+    .maybeSingle();
+
+  if (existingInvite) {
+    throw new Error('Đã có lời mời đang chờ gửi đến email này.');
+  }
+
+  // 3. Create invitation
+  const { data: invite, error } = await supabase
+    .from('sw_workspace_invitations')
+    .insert({
+      workspace_id: params.workspaceId,
+      email: cleanEmail,
+      invited_by: params.invitedBy,
+      role: params.role || 'member',
+      status: 'pending',
+    })
+    .select(`
+      *,
+      workspace:sw_workspaces(name),
+      inviter:sw_profiles!sw_workspace_invitations_invited_by_fkey(name)
+    `)
+    .single();
+
+  if (error) throw error;
+  return invite;
+}
+
+export async function respondToWorkspaceInvitation(params: {
+  invitationId: string;
+  accept: boolean;
+  userId: string;
+}) {
+  const supabase = await createClient();
+
+  // Get invitation details
+  const { data: invite, error: getErr } = await supabase
+    .from('sw_workspace_invitations')
+    .select('*')
+    .eq('id', params.invitationId)
+    .single();
+
+  if (getErr || !invite) {
+    throw new Error('Không tìm thấy lời mời.');
+  }
+
+  const newStatus = params.accept ? 'accepted' : 'declined';
+
+  // Update invitation status
+  const { error: updErr } = await supabase
+    .from('sw_workspace_invitations')
+    .update({ status: newStatus })
+    .eq('id', params.invitationId);
+
+  if (updErr) throw updErr;
+
+  // If accepted, add user to sw_workspace_members
+  if (params.accept) {
+    const { error: insErr } = await supabase
+      .from('sw_workspace_members')
+      .upsert({
+        workspace_id: invite.workspace_id,
+        user_id: params.userId,
+        role: invite.role,
+      });
+
+    if (insErr) throw insErr;
+  }
+
+  return { success: true, status: newStatus };
+}
+
+export async function removeWorkspaceMember(params: {
+  workspaceId: string;
+  userId: string;
+  callerId: string;
+}) {
+  const supabase = await createClient();
+
+  // Verify caller is admin in this workspace
+  const { data: ws } = await supabase
+    .from('sw_workspaces')
+    .select('owner_id')
+    .eq('id', params.workspaceId)
+    .single();
+
+  const { data: callerMember } = await supabase
+    .from('sw_workspace_members')
+    .select('role')
+    .eq('workspace_id', params.workspaceId)
+    .eq('user_id', params.callerId)
+    .maybeSingle();
+
+  const isAdmin = ws?.owner_id === params.callerId || callerMember?.role === 'admin';
+
+  if (!isAdmin && params.userId !== params.callerId) {
+    throw new Error('Chỉ Trưởng nhóm mới có quyền xóa thành viên khỏi Workspace.');
+  }
+
+  const { error } = await supabase
+    .from('sw_workspace_members')
+    .delete()
+    .eq('workspace_id', params.workspaceId)
+    .eq('user_id', params.userId);
+
+  if (error) throw error;
+  return { success: true };
+}
+
+export async function updateWorkspaceMemberRole(params: {
+  workspaceId: string;
+  userId: string;
+  role: 'admin' | 'member';
+  callerId: string;
+}) {
+  const supabase = await createClient();
+
+  // Verify caller is admin in this workspace
+  const { data: ws } = await supabase
+    .from('sw_workspaces')
+    .select('owner_id')
+    .eq('id', params.workspaceId)
+    .single();
+
+  const { data: callerMember } = await supabase
+    .from('sw_workspace_members')
+    .select('role')
+    .eq('workspace_id', params.workspaceId)
+    .eq('user_id', params.callerId)
+    .maybeSingle();
+
+  const isAdmin = ws?.owner_id === params.callerId || callerMember?.role === 'admin';
+
+  if (!isAdmin) {
+    throw new Error('Chỉ Trưởng nhóm mới có quyền thay đổi vai trò trong Workspace.');
+  }
+
+  const { data, error } = await supabase
+    .from('sw_workspace_members')
+    .update({ role: params.role })
+    .eq('workspace_id', params.workspaceId)
+    .eq('user_id', params.userId)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
 

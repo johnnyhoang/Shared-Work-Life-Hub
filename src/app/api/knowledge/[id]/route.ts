@@ -14,6 +14,6 @@ export async function PATCH(
     return NextResponse.json(knowledge);
   } catch (error) {
     console.error('Failed to update knowledge:', error);
-    return NextResponse.json({ error: 'Failed to update knowledge' }, { status: 500 });
+    return NextResponse.json({ error: 'save_failed' }, { status: 500 });
   }
 }

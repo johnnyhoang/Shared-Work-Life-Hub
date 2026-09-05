@@ -1,4 +1,28 @@
 export const en = {
+
+  // User-facing error messages, keyed by ApiErrorCode
+  errors: {
+    unauthorized: 'Your session has expired. Please sign in again.',
+    forbidden: 'You do not have permission to do that.',
+    not_found: 'We could not find what you were looking for.',
+    invalid_request: 'Some details are not valid. Please check and try again.',
+    file_too_large: 'That file is larger than the 25MB limit.',
+    storage_unavailable: 'File storage is not ready yet. Please try again later.',
+    upload_failed: 'The upload did not go through. Please try again.',
+    delete_failed: 'That could not be deleted. Please try again.',
+    fetch_failed: 'We could not load this data. Please try again.',
+    save_failed: 'Your changes were not saved. Please try again.',
+    invite_failed: 'The invitation could not be sent. Please try again.',
+    member_update_failed: 'The member could not be updated.',
+    workspace_create_failed: 'The workspace could not be created. Please try again.',
+    github_user_not_found: 'No GitHub account found with that name.',
+    github_failed: 'We could not reach GitHub. Please try again.',
+    notify_failed: 'The test message failed. Please check the channel settings.',
+    notify_missing_config: 'Some details for this channel are still missing.',
+    notify_unsupported: 'This notification channel is not supported yet.',
+    network: 'Lost connection to the server. Check your network and retry.',
+    unknown: 'Something went wrong. Please try again.',
+  },
   // Common & Navigation
   common: {
     hub: 'Hub',
@@ -27,6 +51,24 @@ export const en = {
     roleAdmin: 'Team Lead',
     roleMember: 'Member',
     teamManagement: 'Team Management',
+    confirm: 'Confirm',
+    you: 'You',
+    configure: 'Configure',
+  },
+
+  // Confirmation & prompt dialogs
+  dialog: {
+    deleteTaskTitle: 'Delete this task?',
+    deleteTaskMessage: 'This task will be permanently deleted and cannot be restored.',
+    deleteFileTitle: 'Delete attachment?',
+    deleteFileMessage: '"{name}" will be permanently removed from storage.',
+    removeMemberTitle: 'Remove this member?',
+    removeMemberMessage: '{name} will lose access to this workspace.',
+    removeMemberConfirm: 'Remove member',
+    newProjectTitle: 'New project',
+    newProjectLabel: 'Project name',
+    newProjectPlaceholder: 'e.g. Website 2026, Q1 Campaign...',
+    newProjectConfirm: 'Create project',
   },
 
   // Greetings & Attention
@@ -51,6 +93,7 @@ export const en = {
     fullFeed: 'Full activity feed',
     quickTask: 'Task',
     quickIdea: 'Idea',
+    todayFocus: "Today's team focus & recent updates",
   },
 
   // Stats
@@ -92,6 +135,15 @@ export const en = {
     dueToday: 'Due today',
     waitingFor: 'Waiting for',
     deleteConfirm: 'Are you sure you want to delete this task?',
+    manageSubtitle: 'Manage tasks and assignments',
+    quickAddPlaceholder: '+ Add a new task and press Enter (type @ to assign)...',
+    noProjectOption: 'No Project',
+    tabMy: 'My Work',
+    tabTeam: 'Team Work',
+    tabDone: 'Done',
+    emptyDone: 'No completed tasks.',
+    emptyTodo: 'No tasks here. Type above to add one!',
+    forYou: 'For You',
   },
 
   // Status & Priority labels
@@ -126,6 +178,15 @@ export const en = {
     tabKnowledge: 'Knowledge',
     tabDecisions: 'Decisions',
     tabActivity: 'Activity',
+    tabAttachments: 'Attachments',
+    hubSpaceTitle: 'Hub Space',
+    hubSpaceSubtitle: 'Projects, ideas & notes for collaboration',
+    importGitHubShort: 'GitHub',
+    importFromGitHub: 'Import from GitHub',
+    emptyProjects: 'No projects yet.',
+    emptyIdeas: 'No ideas recorded yet.',
+    activeTasksLabel: 'active tasks',
+    totalTasksLabel: 'total tasks',
   },
 
   // Ideas
@@ -189,6 +250,7 @@ export const en = {
     joined: 'Joined',
     makeLead: 'Make Lead',
     makeMember: 'Make Member',
+    adminNote: 'Workspace Admins can invite members, assign projects, and manage permissions.',
   },
 
   // Login
@@ -201,5 +263,65 @@ export const en = {
     password: 'Password',
     signInEmail: 'Sign in with Email',
     or: 'OR',
+    googleSyncNote: 'Your account will be securely synced and managed with Google.',
+  },
+
+  // Notifications & Integrations
+  notifications: {
+    title: 'Notification & Chat Integrations',
+    subtitle: 'Receive morning briefings & work updates via Zalo, Slack, Discord, Telegram, Messenger',
+    morningDigest: 'Morning Digest Briefing',
+    morningDigestDesc: 'Automatically receive your overdue, due today, and newly assigned tasks every morning.',
+    digestTime: 'Delivery Time',
+    notifyTypes: 'Notification Triggers',
+    newTask: 'When assigned a new task',
+    dueToday: 'Tasks due today',
+    overdue: 'Overdue tasks',
+    channels: 'Notification Channels',
+    testBtn: 'Test Send',
+    testing: 'Sending...',
+    testSuccess: 'Test message sent successfully!',
+    saveSettings: 'Save Notification Settings',
+    saveSuccess: 'Notification settings saved successfully!',
+    zaloTitle: 'Zalo (Vietnam)',
+    zaloDesc: 'Receive alerts via Zalo Webhook or Zalo OA User ID.',
+    slackTitle: 'Slack (US / Enterprise)',
+    slackDesc: 'Paste your Slack Incoming Webhook URL.',
+    discordTitle: 'Discord (Tech / Gaming)',
+    discordDesc: 'Paste your Discord Channel Webhook URL.',
+    telegramTitle: 'Telegram Bot',
+    telegramDesc: 'Enter your Telegram Bot Token and Chat ID.',
+    messengerTitle: 'Facebook Messenger',
+    messengerDesc: 'Connect via Messenger Page PSID or Webhook URL.',
+    webhookUrlPlaceholder: 'Paste Webhook URL...',
+    userIdPlaceholder: 'Enter User ID...',
+    botTokenPlaceholder: 'Enter Bot Token (e.g., 123456:ABC-DEF)...',
+    chatIdPlaceholder: 'Enter Chat ID (e.g., 987654321)...',
+    psidPlaceholder: 'Enter Messenger PSID...',
+    recommended: 'Recommended',
+    emailDigestTitle: 'Email Digest',
+    easy: 'Easy',
+    emailDigestDesc: 'Receive your morning briefing directly in your email inbox.',
+    recipientEmail: 'Recipient Email Address',
+  },
+
+  quickAction: {
+    task: 'Task',
+    idea: 'Idea',
+    taskPlaceholder: 'Task title (type @ to assign)...',
+    ideaPlaceholder: 'Idea title...',
+    notesPlaceholder: 'Additional notes (optional)...',
+  },
+
+  github: {
+    title: 'Import from GitHub',
+    subtitle: 'Select repositories from your GitHub account to add as projects',
+    fetchBtn: 'Fetch',
+    filterPlaceholder: 'Filter repos by name or language...',
+    loading: 'Loading repositories from GitHub...',
+    empty: 'No repositories found.',
+    added: 'Added',
+    addToHub: 'Add to Hub',
   },
 };
+

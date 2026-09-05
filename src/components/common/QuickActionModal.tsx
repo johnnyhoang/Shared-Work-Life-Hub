@@ -1,9 +1,14 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useHub } from '@/context/HubContext';
 import { useI18n } from '@/lib/i18n';
 import { TaskPriority } from '@/types';
+import {
+  useMention,
+  MentionDropdown,
+  AssigneePickerChips,
+} from './MentionAutocomplete';
 import {
   X,
   CheckSquare,
@@ -19,7 +24,7 @@ export function QuickActionModal() {
     createTask,
     createIdea,
   } = useHub();
-  const { t, language } = useI18n();
+  const { t } = useI18n();
 
   const [type, setType] = useState<'task' | 'idea'>('task');
   const [title, setTitle] = useState('');
@@ -29,6 +34,16 @@ export function QuickActionModal() {
   const [dueDate, setDueDate] = useState('');
   const [priority, setPriority] = useState<TaskPriority>('medium');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const titleInputRef = useRef<HTMLInputElement>(null);
+  const descInputRef = useRef<HTMLTextAreaElement>(null);
+
+  const mention = useMention({
+    users: hubState?.users || [],
+    onSelectUser: (user) => {
+      setAssigneeId(user.id);
+    },
+  });
 
   useEffect(() => {
     if (isQuickActionOpen) {
@@ -77,7 +92,7 @@ export function QuickActionModal() {
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-xs">
       <div
-        className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-t-3xl sm:rounded-3xl shadow-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden animate-in fade-in slide-in-from-bottom-6 duration-200"
+        className="w-full max-w-md bg-white dark:bg-zinc-900 rounded-t-2xl sm:rounded-2xl shadow-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden animate-in fade-in slide-in-from-bottom-6 duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -93,7 +108,7 @@ export function QuickActionModal() {
               }`}
             >
               <CheckSquare className="w-4 h-4" />
-              <span>{language === 'vi' ? 'Công việc' : 'Task'}</span>
+              <span>{t.quickAction.task}</span>
             </button>
 
             <button
@@ -106,7 +121,7 @@ export function QuickActionModal() {
               }`}
             >
               <Lightbulb className="w-4 h-4" />
-              <span>{language === 'vi' ? 'Ý tưởng' : 'Idea'}</span>
+              <span>{t.quickAction.idea}</span>
             </button>
           </div>
 
@@ -120,48 +135,77 @@ export function QuickActionModal() {
 
         {/* Form Body */}
         <form onSubmit={handleSubmit} className="p-5 space-y-3.5">
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder={type === 'task' ? (language === 'vi' ? 'Tên việc cần làm...' : 'Task title...') : (language === 'vi' ? 'Tiêu đề ý tưởng...' : 'Idea title...')}
-            autoFocus
-            required
-            className="w-full px-4 py-3 text-sm sm:text-base font-bold rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+          {/* Title Input with @mention */}
+          <div className="relative">
+            <input
+              ref={titleInputRef}
+              type="text"
+              value={title}
+              onChange={(e) => {
+                setTitle(e.target.value);
+                mention.checkMention(e.target.value, e.target.selectionStart || 0);
+              }}
+              onKeyDown={(e) => {
+                const handled = mention.handleKeyDown(
+                  e,
+                  title,
+                  titleInputRef.current?.selectionStart || 0,
+                  setTitle,
+                  titleInputRef
+                );
+                if (handled) e.stopPropagation();
+              }}
+              placeholder={
+                type === 'task'
+                  ? t.quickAction.taskPlaceholder
+                  : t.quickAction.ideaPlaceholder
+              }
+              autoFocus
+              required
+              className="w-full px-4 py-3 text-sm sm:text-base font-bold rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
 
+            {mention.isOpen && (
+              <MentionDropdown
+                users={mention.filteredUsers}
+                selectedIndex={mention.selectedIndex}
+                onSelect={(user) => {
+                  mention.applyMention(
+                    user,
+                    title,
+                    titleInputRef.current?.selectionStart || title.length,
+                    setTitle,
+                    titleInputRef
+                  );
+                }}
+              />
+            )}
+          </div>
+
+          {/* Description */}
           <textarea
+            ref={descInputRef}
             rows={2}
             value={desc}
             onChange={(e) => setDesc(e.target.value)}
-            placeholder={language === 'vi' ? 'Ghi chú thêm (tùy chọn)...' : 'Additional notes (optional)...'}
+            placeholder={t.quickAction.notesPlaceholder}
             className="w-full px-4 py-2.5 text-xs sm:text-sm rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
           />
 
+          {/* Assignee Chips Selector (Quick click) */}
           {type === 'task' && (
-            <div className="grid grid-cols-2 gap-2.5 text-xs sm:text-sm">
-              <div>
-                <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider block mb-1.5">
-                  {t.work.assignee}
-                </label>
-                <select
-                  value={assigneeId}
-                  onChange={(e) => setAssigneeId(e.target.value)}
-                  className="w-full px-3 py-2 text-xs sm:text-sm font-semibold rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100"
-                >
-                  <option value={currentUserId}>
-                    👤 {language === 'vi' ? 'Chính tôi (Giao cho bản thân)' : 'For Myself (Me)'}
-                  </option>
-                  {hubState.users
-                    .filter((u) => u.id !== currentUserId)
-                    .map((u) => (
-                      <option key={u.id} value={u.id}>
-                        {u.avatar || '👤'} {u.name}
-                      </option>
-                    ))}
-                </select>
-              </div>
+            <AssigneePickerChips
+              users={hubState.users}
+              currentUserId={currentUserId}
+              selectedAssigneeId={assigneeId}
+              onSelectAssignee={setAssigneeId}
+              label={t.work.assignee}
+            />
+          )}
 
+          {/* Due Date & Project */}
+          <div className="grid grid-cols-2 gap-2.5 text-xs sm:text-sm">
+            {type === 'task' && (
               <div>
                 <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider block mb-1.5">
                   {t.work.dueDate}
@@ -173,26 +217,25 @@ export function QuickActionModal() {
                   className="w-full px-3 py-2 text-xs sm:text-sm font-semibold rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100"
                 />
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Project Tag */}
-          <div>
-            <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider block mb-1.5">
-              {t.work.project}
-            </label>
-            <select
-              value={projectId}
-              onChange={(e) => setProjectId(e.target.value)}
-              className="w-full px-3 py-2 text-xs sm:text-sm font-semibold rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100"
-            >
-              <option value="">{t.common.noProject}</option>
-              {hubState.projects.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
-            </select>
+            <div className={type === 'idea' ? 'col-span-2' : ''}>
+              <label className="text-xs font-bold text-zinc-400 uppercase tracking-wider block mb-1.5">
+                {t.work.project}
+              </label>
+              <select
+                value={projectId}
+                onChange={(e) => setProjectId(e.target.value)}
+                className="w-full px-3 py-2 text-xs sm:text-sm font-semibold rounded-xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100"
+              >
+                <option value="">{t.common.noProject}</option>
+                {hubState.projects.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           {/* Footer Submit */}
@@ -217,3 +260,4 @@ export function QuickActionModal() {
     </div>
   );
 }
+
