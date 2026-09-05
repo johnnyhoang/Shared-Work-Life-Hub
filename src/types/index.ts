@@ -171,3 +171,45 @@ export interface HubState {
     waiting: AttentionItem[];
   };
 }
+
+export type NotificationChannel = 'zalo' | 'slack' | 'discord' | 'telegram' | 'messenger' | 'email';
+
+export interface NotificationSettings {
+  user_id: string;
+  morning_digest_enabled: boolean;
+  digest_time: string; // e.g. "08:00"
+  notify_on_new_task: boolean;
+  notify_on_due_today: boolean;
+  notify_on_overdue: boolean;
+  // Zalo
+  zalo_enabled: boolean;
+  zalo_user_id: string;
+  zalo_webhook_url: string;
+  // Slack
+  slack_enabled: boolean;
+  slack_webhook_url: string;
+  // Discord
+  discord_enabled: boolean;
+  discord_webhook_url: string;
+  // Telegram
+  telegram_enabled: boolean;
+  telegram_bot_token: string;
+  telegram_chat_id: string;
+  // Messenger
+  messenger_enabled: boolean;
+  messenger_psid: string;
+  messenger_webhook_url: string;
+  // Email
+  email_enabled: boolean;
+  email_address: string;
+  updated_at?: string;
+}
+
+export interface DigestPayload {
+  userName: string;
+  overdueTasks: Task[];
+  dueTodayTasks: Task[];
+  newTasks: Task[];
+  appUrl?: string;
+}
+

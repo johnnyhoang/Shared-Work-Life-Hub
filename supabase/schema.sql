@@ -215,3 +215,41 @@ CREATE POLICY "Authenticated users can create sw_comments" ON public.sw_comments
 
 CREATE POLICY "Authenticated users can view sw_activities" ON public.sw_activities FOR SELECT TO authenticated USING (true);
 CREATE POLICY "Authenticated users can create sw_activities" ON public.sw_activities FOR INSERT TO authenticated WITH CHECK (true);
+
+-- 9. Notification Settings Table (sw_notification_settings)
+CREATE TABLE IF NOT EXISTS public.sw_notification_settings (
+  user_id UUID PRIMARY KEY REFERENCES public.sw_profiles(id) ON DELETE CASCADE,
+  morning_digest_enabled BOOLEAN NOT NULL DEFAULT true,
+  digest_time TEXT NOT NULL DEFAULT '08:00',
+  notify_on_new_task BOOLEAN NOT NULL DEFAULT true,
+  notify_on_due_today BOOLEAN NOT NULL DEFAULT true,
+  notify_on_overdue BOOLEAN NOT NULL DEFAULT true,
+  -- Zalo
+  zalo_enabled BOOLEAN NOT NULL DEFAULT false,
+  zalo_user_id TEXT NOT NULL DEFAULT '',
+  zalo_webhook_url TEXT NOT NULL DEFAULT '',
+  -- Slack
+  slack_enabled BOOLEAN NOT NULL DEFAULT false,
+  slack_webhook_url TEXT NOT NULL DEFAULT '',
+  -- Discord
+  discord_enabled BOOLEAN NOT NULL DEFAULT false,
+  discord_webhook_url TEXT NOT NULL DEFAULT '',
+  -- Telegram
+  telegram_enabled BOOLEAN NOT NULL DEFAULT false,
+  telegram_bot_token TEXT NOT NULL DEFAULT '',
+  telegram_chat_id TEXT NOT NULL DEFAULT '',
+  -- Messenger
+  messenger_enabled BOOLEAN NOT NULL DEFAULT false,
+  messenger_psid TEXT NOT NULL DEFAULT '',
+  messenger_webhook_url TEXT NOT NULL DEFAULT '',
+  -- Email
+  email_enabled BOOLEAN NOT NULL DEFAULT false,
+  email_address TEXT NOT NULL DEFAULT '',
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE public.sw_notification_settings ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can view their own notification settings" ON public.sw_notification_settings FOR SELECT TO authenticated USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert their own notification settings" ON public.sw_notification_settings FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can update their own notification settings" ON public.sw_notification_settings FOR UPDATE TO authenticated USING (auth.uid() = user_id);
+

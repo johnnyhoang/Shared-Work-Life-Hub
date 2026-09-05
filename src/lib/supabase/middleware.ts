@@ -40,20 +40,28 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const isAuthRoute =
-    request.nextUrl.pathname.startsWith('/login') ||
-    request.nextUrl.pathname.startsWith('/auth') ||
-    request.nextUrl.pathname.startsWith('/api/auth');
+  const pathname = request.nextUrl.pathname;
 
-  // If user is not authenticated and trying to access main app
-  if (!user && !isAuthRoute && !request.nextUrl.pathname.startsWith('/_next') && request.nextUrl.pathname !== '/favicon.ico') {
+  // Never redirect API routes, internal Next.js assets, or public static files to HTML pages
+  const isApiOrStatic =
+    pathname.startsWith('/api') ||
+    pathname.startsWith('/_next') ||
+    pathname.startsWith('/auth') ||
+    pathname === '/favicon.ico';
+
+  if (isApiOrStatic) {
+    return supabaseResponse;
+  }
+
+  // If user is not authenticated and trying to access main app pages (not /login)
+  if (!user && pathname !== '/login') {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
     return NextResponse.redirect(url);
   }
 
   // If user is already authenticated and visits /login, redirect to /
-  if (user && request.nextUrl.pathname.startsWith('/login')) {
+  if (user && pathname === '/login') {
     const url = request.nextUrl.clone();
     url.pathname = '/';
     return NextResponse.redirect(url);

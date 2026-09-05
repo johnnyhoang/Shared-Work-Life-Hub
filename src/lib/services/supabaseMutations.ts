@@ -630,3 +630,109 @@ export async function getSupabaseActivities() {
     project_name: a.project?.name,
   }));
 }
+
+// ==========================================
+// NOTIFICATION SETTINGS
+// ==========================================
+
+export async function getUserNotificationSettings(userId: string) {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from('sw_notification_settings')
+    .select('*')
+    .eq('user_id', userId)
+    .maybeSingle();
+
+  if (error && error.code !== 'PGRST116') {
+    console.error('Error fetching notification settings:', error);
+  }
+
+  // Return existing or default settings
+  return data || {
+    user_id: userId,
+    morning_digest_enabled: true,
+    digest_time: '08:00',
+    notify_on_new_task: true,
+    notify_on_due_today: true,
+    notify_on_overdue: true,
+    zalo_enabled: false,
+    zalo_user_id: '',
+    zalo_webhook_url: '',
+    slack_enabled: false,
+    slack_webhook_url: '',
+    discord_enabled: false,
+    discord_webhook_url: '',
+    telegram_enabled: false,
+    telegram_bot_token: '',
+    telegram_chat_id: '',
+    messenger_enabled: false,
+    messenger_psid: '',
+    messenger_webhook_url: '',
+    email_enabled: false,
+    email_address: '',
+  };
+}
+
+export async function upsertUserNotificationSettings(userId: string, settings: any) {
+  const supabase = await createClient();
+  const payload = {
+    ...settings,
+    user_id: userId,
+    updated_at: new Date().toISOString(),
+  };
+
+  const { data, error } = await supabase
+    .from('sw_notification_settings')
+    .upsert(payload)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+export async function getAllUsersWithNotificationSettings() {
+  const supabase = await createClient();
+  // Fetch all profiles and their notification settings
+  const { data: profiles, error: pErr } = await supabase
+    .from('sw_profiles')
+    .select('id, name, email, timezone');
+
+  if (pErr) throw pErr;
+
+  const { data: allSettings, error: sErr } = await supabase
+    .from('sw_notification_settings')
+    .select('*');
+
+  if (sErr) throw sErr;
+
+  const settingsMap = new Map((allSettings || []).map((s: any) => [s.user_id, s]));
+
+  return (profiles || []).map((p: any) => ({
+    user: p,
+    settings: settingsMap.get(p.id) || {
+      user_id: p.id,
+      morning_digest_enabled: true,
+      digest_time: '08:00',
+      notify_on_new_task: true,
+      notify_on_due_today: true,
+      notify_on_overdue: true,
+      zalo_enabled: false,
+      zalo_user_id: '',
+      zalo_webhook_url: '',
+      slack_enabled: false,
+      slack_webhook_url: '',
+      discord_enabled: false,
+      discord_webhook_url: '',
+      telegram_enabled: false,
+      telegram_bot_token: '',
+      telegram_chat_id: '',
+      messenger_enabled: false,
+      messenger_psid: '',
+      messenger_webhook_url: '',
+      email_enabled: false,
+      email_address: '',
+    },
+  }));
+}
+

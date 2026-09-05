@@ -44,9 +44,13 @@ export default function RootLayout({
   return (
     <html
       lang="vi"
+      suppressHydrationWarning
       className={`${beVietnamPro.variable} ${jetbrainsMono.variable} font-sans h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-zinc-50/80 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50 font-sans">
+      <body
+        suppressHydrationWarning
+        className="min-h-full flex flex-col bg-zinc-50/80 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-50 font-sans"
+      >
         <I18nProvider>
           <HubProvider>{children}</HubProvider>
         </I18nProvider>

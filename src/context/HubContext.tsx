@@ -114,13 +114,20 @@ export function HubProvider({ children }: { children: React.ReactNode }) {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
   const refreshHub = useCallback(async () => {
+    if (typeof window !== 'undefined' && window.location.pathname === '/login') {
+      setIsLoading(false);
+      return;
+    }
     try {
       const res = await fetch('/api/hub');
       if (res.ok) {
-        const data: HubState = await res.json();
-        setHubState(data);
-        if (!activeUserId && data.currentUser) {
-          setActiveUserId(data.currentUser.id);
+        const contentType = res.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          const data: HubState = await res.json();
+          setHubState(data);
+          if (!activeUserId && data.currentUser) {
+            setActiveUserId(data.currentUser.id);
+          }
         }
       }
     } catch (err) {
