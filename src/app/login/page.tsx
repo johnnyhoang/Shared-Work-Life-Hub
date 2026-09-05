@@ -40,12 +40,12 @@ export default function LoginPage() {
       <div className="flex items-center justify-between max-w-md w-full mx-auto">
         <div className="flex items-center gap-2">
           <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse" />
-          <span className="font-extrabold text-base tracking-tight">Hub</span>
+          <span className="font-bold text-base tracking-tight">Hub</span>
         </div>
 
         <button
           onClick={() => setLanguage(language === 'vi' ? 'en' : 'vi')}
-          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-xs hover:bg-zinc-50 dark:hover:bg-zinc-800 transition"
+          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-xs hover:bg-zinc-50 dark:hover:bg-zinc-800 transition"
         >
           <Globe className="w-3.5 h-3.5 text-blue-500" />
           <span>{language === 'vi' ? '🇻🇳 VN' : '🇬🇧 EN'}</span>
@@ -58,7 +58,7 @@ export default function LoginPage() {
           <div className="w-14 h-14 rounded-2xl bg-blue-600/10 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center mx-auto shadow-xs">
             <Sparkles className="w-7 h-7" />
           </div>
-          <h1 className="text-2xl font-black tracking-tight text-zinc-900 dark:text-zinc-50">
+          <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
             {t.auth.welcome}
           </h1>
           <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed max-w-xs mx-auto">

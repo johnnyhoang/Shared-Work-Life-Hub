@@ -1,18 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { deleteTask, getTaskById, updateTask } from '@/lib/services/taskService';
+import {
+  getSupabaseTaskById,
+  updateSupabaseTask,
+  deleteSupabaseTask,
+} from '@/lib/services/supabaseMutations';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params;
-  const task = getTaskById(id);
-  if (!task) {
-    return NextResponse.json({ error: 'Task not found' }, { status: 404 });
+  try {
+    const { id } = await params;
+    const task = await getSupabaseTaskById(id);
+    if (!task) {
+      return NextResponse.json({ error: 'Task not found' }, { status: 404 });
+    }
+    return NextResponse.json(task);
+  } catch (error) {
+    console.error('Failed to get task:', error);
+    return NextResponse.json({ error: 'Failed to fetch task' }, { status: 500 });
   }
-  return NextResponse.json(task);
 }
 
 export async function PATCH(
@@ -23,11 +32,8 @@ export async function PATCH(
     const { id } = await params;
     const body = await request.json();
     const { actor_id, ...updates } = body;
-    const updated = updateTask(id, updates, actor_id || 'usr_johnny');
-    if (!updated) {
-      return NextResponse.json({ error: 'Task not found' }, { status: 404 });
-    }
-    return NextResponse.json(updated);
+    const task = await updateSupabaseTask(id, updates, actor_id);
+    return NextResponse.json(task);
   } catch (error) {
     console.error('Failed to update task:', error);
     return NextResponse.json({ error: 'Failed to update task' }, { status: 500 });
@@ -41,8 +47,9 @@ export async function DELETE(
   try {
     const { id } = await params;
     const { searchParams } = new URL(request.url);
-    const actorId = searchParams.get('actor_id') || 'usr_johnny';
-    const success = deleteTask(id, actorId);
+    const actor_id = searchParams.get('actor_id') || undefined;
+
+    const success = await deleteSupabaseTask(id, actor_id);
     if (!success) {
       return NextResponse.json({ error: 'Task not found' }, { status: 404 });
     }

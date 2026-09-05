@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { addComment, getComments } from '@/lib/services/commentService';
+import { getSupabaseComments, addSupabaseComment } from '@/lib/services/supabaseMutations';
 import { EntityType } from '@/types';
 
 export const dynamic = 'force-dynamic';
@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'entity_type and entity_id are required' }, { status: 400 });
     }
 
-    const comments = getComments(entity_type, entity_id);
+    const comments = await getSupabaseComments(entity_type, entity_id);
     return NextResponse.json(comments);
   } catch (error) {
     console.error('Failed to get comments:', error);
@@ -25,10 +25,10 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const comment = addComment(body);
+    const comment = await addSupabaseComment(body);
     return NextResponse.json(comment, { status: 201 });
   } catch (error) {
-    console.error('Failed to add comment:', error);
-    return NextResponse.json({ error: 'Failed to add comment' }, { status: 500 });
+    console.error('Failed to create comment:', error);
+    return NextResponse.json({ error: 'Failed to create comment' }, { status: 500 });
   }
 }

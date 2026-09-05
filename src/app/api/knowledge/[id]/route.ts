@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { updateKnowledge } from '@/lib/services/knowledgeService';
+import { updateSupabaseKnowledge } from '@/lib/services/supabaseMutations';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,14 +10,10 @@ export async function PATCH(
   try {
     const { id } = await params;
     const body = await request.json();
-    const { actor_id, ...updates } = body;
-    const updated = updateKnowledge(id, updates, actor_id || 'usr_johnny');
-    if (!updated) {
-      return NextResponse.json({ error: 'Knowledge item not found' }, { status: 404 });
-    }
-    return NextResponse.json(updated);
+    const knowledge = await updateSupabaseKnowledge(id, body);
+    return NextResponse.json(knowledge);
   } catch (error) {
-    console.error('Failed to update knowledge item:', error);
-    return NextResponse.json({ error: 'Failed to update knowledge item' }, { status: 500 });
+    console.error('Failed to update knowledge:', error);
+    return NextResponse.json({ error: 'Failed to update knowledge' }, { status: 500 });
   }
 }

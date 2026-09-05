@@ -42,7 +42,7 @@ export function ProjectsScreen() {
         {/* Header */}
         <div className="flex items-center justify-between gap-3 pt-2">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-zinc-900 dark:text-zinc-50">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
               {language === 'vi' ? 'Không gian chung' : 'Hub Space'}
             </h1>
             <p className="text-sm sm:text-base text-zinc-500 dark:text-zinc-400 mt-0.5">
@@ -83,12 +83,12 @@ export function ProjectsScreen() {
         </div>
 
         {/* 2 Subtabs: Projects & Ideas */}
-        <div className="flex items-center gap-1.5 p-1 bg-zinc-100 dark:bg-zinc-900 rounded-2xl border border-zinc-200/80 dark:border-zinc-800 text-xs sm:text-sm font-bold w-fit">
+        <div className="flex items-center gap-1.5 p-1 bg-zinc-100 dark:bg-zinc-900 rounded-2xl border border-zinc-200/80 dark:border-zinc-800 text-xs sm:text-sm font-semibold w-fit">
           <button
             onClick={() => setActiveSubTab('projects')}
             className={`flex items-center gap-2 px-4 py-1.5 rounded-xl transition ${
               activeSubTab === 'projects'
-                ? 'bg-white dark:bg-zinc-800 text-blue-600 dark:text-blue-400 shadow-xs font-black'
+                ? 'bg-white dark:bg-zinc-800 text-blue-600 dark:text-blue-400 shadow-xs font-bold'
                 : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900'
             }`}
           >
@@ -100,7 +100,7 @@ export function ProjectsScreen() {
             onClick={() => setActiveSubTab('ideas')}
             className={`flex items-center gap-2 px-4 py-1.5 rounded-xl transition ${
               activeSubTab === 'ideas'
-                ? 'bg-white dark:bg-zinc-800 text-amber-600 dark:text-amber-400 shadow-xs font-black'
+                ? 'bg-white dark:bg-zinc-800 text-amber-600 dark:text-amber-400 shadow-xs font-bold'
                 : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900'
             }`}
           >
@@ -114,19 +114,19 @@ export function ProjectsScreen() {
           <div className="space-y-3">
             {projects.length === 0 ? (
               <div className="py-14 text-center rounded-3xl border border-dashed border-zinc-200 dark:border-zinc-800 p-8 space-y-3">
-                <p className="text-sm font-bold text-zinc-600 dark:text-zinc-400">
+                <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
                   {language === 'vi' ? 'Chưa có dự án nào.' : 'No projects yet.'}
                 </p>
                 <div className="flex justify-center gap-2">
                   <button
                     onClick={() => setIsGitHubModalOpen(true)}
-                    className="px-4 py-2 text-xs sm:text-sm font-bold text-white bg-zinc-900 dark:bg-zinc-700 hover:bg-black rounded-2xl shadow-xs transition"
+                    className="px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-zinc-900 dark:bg-zinc-700 hover:bg-black rounded-2xl shadow-xs transition"
                   >
                     {language === 'vi' ? 'Import từ GitHub' : 'Import from GitHub'}
                   </button>
                   <button
                     onClick={handleAddProject}
-                    className="px-4 py-2 text-xs sm:text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-2xl shadow-xs transition"
+                    className="px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-2xl shadow-xs transition"
                   >
                     {t.projects.newProject}
                   </button>
@@ -146,7 +146,7 @@ export function ProjectsScreen() {
                   >
                     <div className="flex items-center gap-3.5 min-w-0">
                       <div
-                        className="w-10 h-10 rounded-2xl flex items-center justify-center text-white text-sm font-black shrink-0"
+                        className="w-10 h-10 rounded-2xl flex items-center justify-center text-white text-sm font-bold shrink-0"
                         style={{ backgroundColor: isGitHub ? '#24292e' : (proj.color || '#3b82f6') }}
                       >
                         {isGitHub ? (

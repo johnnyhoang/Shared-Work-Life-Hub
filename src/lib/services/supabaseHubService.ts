@@ -13,7 +13,7 @@ import {
   UserRole,
 } from '@/types';
 
-export async function getSupabaseHubState(): Promise<HubState | null> {
+export async function getSupabaseHubState(): Promise<HubState> {
   const supabase = await createClient();
 
   // 1. Get authenticated user
@@ -27,24 +27,81 @@ export async function getSupabaseHubState(): Promise<HubState | null> {
     .select('*')
     .order('created_at', { ascending: true });
 
-  if (profileErr || !profiles || profiles.length === 0) {
-    return null;
-  }
+  let users: User[] = [];
 
-  // Map profiles to User type
-  const users: User[] = profiles.map((p) => ({
-    id: p.id,
-    name: p.name,
-    avatar: p.avatar_url || '👤',
-    avatar_url: p.avatar_url,
-    email: p.email,
-    role: (p.role as UserRole) || 'member',
-    timezone: p.timezone || 'Asia/Ho_Chi_Minh',
-    location: p.location || 'Vietnam',
-    flag: p.flag || '🇻🇳',
-    color: p.color || '#3b82f6',
-    last_visited_at: p.last_visited_at || p.created_at,
-  }));
+  if (profiles && profiles.length > 0) {
+    users = profiles.map((p) => ({
+      id: p.id,
+      name: p.name,
+      avatar: p.avatar_url || '👤',
+      avatar_url: p.avatar_url,
+      email: p.email,
+      role: (p.role as UserRole) || 'member',
+      timezone: p.timezone || 'Asia/Ho_Chi_Minh',
+      location: p.location || 'Vietnam',
+      flag: p.flag || '🇻🇳',
+      color: p.color || '#3b82f6',
+      last_visited_at: p.last_visited_at || p.created_at,
+    }));
+  } else if (authUser) {
+    // If profiles table is empty but user is logged in, upsert profile
+    const userName =
+      authUser.user_metadata?.full_name ||
+      authUser.user_metadata?.name ||
+      authUser.email?.split('@')[0] ||
+      'Member';
+    const userAvatar =
+      authUser.user_metadata?.avatar_url ||
+      authUser.user_metadata?.picture ||
+      '👤';
+
+    const newProfile = {
+      id: authUser.id,
+      name: userName,
+      avatar_url: userAvatar,
+      email: authUser.email || '',
+      role: 'admin',
+      timezone: 'Asia/Ho_Chi_Minh',
+      location: 'Vietnam',
+      flag: '🇻🇳',
+      color: '#3b82f6',
+      last_visited_at: new Date().toISOString(),
+    };
+
+    await supabase.from('sw_profiles').upsert(newProfile);
+
+    users = [
+      {
+        id: newProfile.id,
+        name: newProfile.name,
+        avatar: newProfile.avatar_url,
+        avatar_url: newProfile.avatar_url,
+        email: newProfile.email,
+        role: 'admin',
+        timezone: newProfile.timezone,
+        location: newProfile.location,
+        flag: newProfile.flag,
+        color: newProfile.color,
+        last_visited_at: newProfile.last_visited_at,
+      },
+    ];
+  } else {
+    // Unauthenticated placeholder fallback (clean empty user)
+    users = [
+      {
+        id: 'guest',
+        name: 'Guest',
+        avatar: '👤',
+        email: '',
+        role: 'member',
+        timezone: 'Asia/Ho_Chi_Minh',
+        location: 'Vietnam',
+        flag: '🇻🇳',
+        color: '#3b82f6',
+        last_visited_at: new Date().toISOString(),
+      },
+    ];
+  }
 
   const currentUser = authUser
     ? users.find((u) => u.id === authUser.id) || users[0]
@@ -301,4 +358,14 @@ export async function updateProfileRole(userId: string, role: UserRole) {
 
   if (error) throw error;
   return data;
+}
+
+export async function updateLastVisitedSupabase(userId: string) {
+  const supabase = await createClient();
+  const now = new Date().toISOString();
+  await supabase
+    .from('sw_profiles')
+    .update({ last_visited_at: now })
+    .eq('id', userId);
+  return true;
 }

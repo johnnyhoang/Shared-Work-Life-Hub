@@ -55,12 +55,12 @@ export function BottomNav() {
                 <div className="relative">
                   <Icon className="w-6 h-6 mb-1" />
                   {item.badge !== undefined && item.badge > 0 && (
-                    <span className="absolute -top-1 -right-2.5 min-w-[18px] h-[18px] px-1 text-[11px] font-black text-white rounded-full flex items-center justify-center bg-rose-500 shadow-xs">
+                    <span className="absolute -top-1 -right-2.5 min-w-[18px] h-[18px] px-1 text-[11px] font-bold text-white rounded-full flex items-center justify-center bg-rose-500 shadow-xs">
                       {item.badge > 9 ? '9+' : item.badge}
                     </span>
                   )}
                 </div>
-                <span className="text-xs sm:text-sm font-bold tracking-tight">{item.label}</span>
+                <span className="text-xs sm:text-sm font-semibold tracking-tight">{item.label}</span>
               </button>
             );
           })}
@@ -77,9 +77,9 @@ export function BottomNav() {
               <button
                 key={item.id}
                 onClick={() => setActiveTab(item.id)}
-                className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-sm font-bold transition-all ${
+                className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-sm font-semibold transition-all ${
                   isActive
-                    ? 'bg-blue-600 text-white shadow-sm font-black'
+                    ? 'bg-blue-600 text-white shadow-sm font-bold'
                     : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200/70 dark:hover:bg-zinc-800/70'
                 }`}
               >
@@ -89,7 +89,7 @@ export function BottomNav() {
                 </div>
                 {item.badge !== undefined && item.badge > 0 && (
                   <span
-                    className={`px-2 py-0.5 text-xs font-black rounded-full ${
+                    className={`px-2 py-0.5 text-xs font-bold rounded-full ${
                       isActive ? 'bg-white text-blue-600' : 'bg-rose-500 text-white'
                     }`}
                   >

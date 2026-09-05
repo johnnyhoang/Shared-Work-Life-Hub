@@ -75,7 +75,7 @@ export function WorkScreen() {
       {/* Header & Title */}
       <div className="flex items-center justify-between gap-3 pt-2">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-zinc-900 dark:text-zinc-50">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
             {t.work.title}
           </h1>
           <p className="text-sm sm:text-base text-zinc-500 dark:text-zinc-400 mt-0.5">
@@ -93,13 +93,13 @@ export function WorkScreen() {
           value={quickTitle}
           onChange={(e) => setQuickTitle(e.target.value)}
           placeholder={language === 'vi' ? '+ Thêm việc mới rồi bấm Enter...' : '+ Add a new task and press Enter...'}
-          className="w-full pl-4 pr-24 py-3.5 text-sm sm:text-base font-bold rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-xs"
+          className="w-full pl-4 pr-24 py-3.5 text-sm sm:text-base font-medium rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-xs"
         />
         {quickTitle.trim() && (
           <button
             type="submit"
             disabled={isSubmitting}
-            className="absolute right-2.5 top-1/2 -translate-y-1/2 px-3.5 py-1.5 text-xs sm:text-sm font-bold text-white bg-blue-600 rounded-xl active:scale-95 shadow-xs transition"
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 px-3.5 py-1.5 text-xs sm:text-sm font-semibold text-white bg-blue-600 rounded-xl active:scale-95 shadow-xs transition"
           >
             {isSubmitting ? '...' : t.common.save}
           </button>
@@ -108,12 +108,12 @@ export function WorkScreen() {
 
       {/* Simple 3-Tab Filter Bar */}
       <div className="flex items-center justify-between gap-2 flex-wrap">
-        <div className="flex items-center gap-1.5 p-1 bg-zinc-100 dark:bg-zinc-900 rounded-2xl border border-zinc-200/80 dark:border-zinc-800 text-xs sm:text-sm font-bold">
+        <div className="flex items-center gap-1.5 p-1 bg-zinc-100 dark:bg-zinc-900 rounded-2xl border border-zinc-200/80 dark:border-zinc-800 text-xs sm:text-sm font-semibold">
           <button
             onClick={() => setFilterTab('my')}
             className={`px-3.5 py-1.5 rounded-xl transition ${
               filterTab === 'my'
-                ? 'bg-white dark:bg-zinc-800 text-blue-600 dark:text-blue-400 shadow-xs font-black'
+                ? 'bg-white dark:bg-zinc-800 text-blue-600 dark:text-blue-400 shadow-xs font-bold'
                 : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900'
             }`}
           >
@@ -123,7 +123,7 @@ export function WorkScreen() {
             onClick={() => setFilterTab('team')}
             className={`px-3.5 py-1.5 rounded-xl transition ${
               filterTab === 'team'
-                ? 'bg-white dark:bg-zinc-800 text-blue-600 dark:text-blue-400 shadow-xs font-black'
+                ? 'bg-white dark:bg-zinc-800 text-blue-600 dark:text-blue-400 shadow-xs font-bold'
                 : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900'
             }`}
           >
@@ -133,7 +133,7 @@ export function WorkScreen() {
             onClick={() => setFilterTab('done')}
             className={`px-3.5 py-1.5 rounded-xl transition ${
               filterTab === 'done'
-                ? 'bg-white dark:bg-zinc-800 text-emerald-600 dark:text-emerald-400 shadow-xs font-black'
+                ? 'bg-white dark:bg-zinc-800 text-emerald-600 dark:text-emerald-400 shadow-xs font-bold'
                 : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900'
             }`}
           >
@@ -222,7 +222,7 @@ export function WorkScreen() {
                     </span>
 
                     {task.priority === 'urgent' && !isCompleted && (
-                      <span className="px-2 py-0.5 rounded-md text-[10px] font-black bg-rose-500 text-white shrink-0">
+                      <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-rose-500 text-white shrink-0">
                         {t.statusLabels.urgent}
                       </span>
                     )}

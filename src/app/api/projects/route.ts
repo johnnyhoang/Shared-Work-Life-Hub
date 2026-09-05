@@ -1,14 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createProject, getProjects } from '@/lib/services/projectService';
-import { ProjectStatus } from '@/types';
+import { getSupabaseProjects, createSupabaseProject } from '@/lib/services/supabaseMutations';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const status = (searchParams.get('status') as ProjectStatus) || undefined;
-    const projects = getProjects({ status });
+    const projects = await getSupabaseProjects();
     return NextResponse.json(projects);
   } catch (error) {
     console.error('Failed to get projects:', error);
@@ -19,7 +16,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const project = createProject(body);
+    const project = await createSupabaseProject(body);
     return NextResponse.json(project, { status: 201 });
   } catch (error) {
     console.error('Failed to create project:', error);

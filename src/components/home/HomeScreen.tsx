@@ -41,7 +41,7 @@ export function HomeScreen() {
       {/* Top Banner / Greeting */}
       <div className="flex items-center justify-between gap-3 pt-2">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-zinc-900 dark:text-zinc-50 flex items-center gap-2">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50 flex items-center gap-2">
             <span>{greeting}, {currentUser.name}</span>
             <span>👋</span>
           </h1>
@@ -54,7 +54,7 @@ export function HomeScreen() {
 
         <button
           onClick={() => openQuickAction('task')}
-          className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 active:scale-95 rounded-2xl shadow-xs transition shrink-0"
+          className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 active:scale-95 rounded-2xl shadow-xs transition shrink-0"
         >
           <Plus className="w-4 h-4" />
           <span>{t.work.newTask}</span>
@@ -66,10 +66,10 @@ export function HomeScreen() {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2.5">
             <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-pulse" />
-            <h2 className="text-sm sm:text-base font-black uppercase tracking-wider text-zinc-900 dark:text-zinc-100">
+            <h2 className="text-sm sm:text-base font-bold uppercase tracking-wider text-zinc-900 dark:text-zinc-100">
               {t.home.needsYourAction}
             </h2>
-            <span className="px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 text-xs font-black">
+            <span className="px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 text-xs font-bold">
               {actionItems.length}
             </span>
           </div>
@@ -158,7 +158,7 @@ export function HomeScreen() {
       {/* 2. Recent Updates */}
       <div className="rounded-3xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-5 shadow-xs">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-sm sm:text-base font-black uppercase tracking-wider text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+          <h2 className="text-sm sm:text-base font-bold uppercase tracking-wider text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
             <Clock className="w-4 h-4 text-blue-600" />
             <span>{t.home.recentActivity}</span>
           </h2>

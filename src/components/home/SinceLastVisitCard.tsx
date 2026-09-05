@@ -48,7 +48,7 @@ export function SinceLastVisitCard() {
               <span className="text-xs font-bold uppercase tracking-wider text-blue-700 dark:text-blue-300">
                 {t.home.sinceLastVisit}
               </span>
-              <span className="px-1.5 py-0.2 rounded-full bg-blue-600 text-white text-[10px] font-extrabold">
+              <span className="px-1.5 py-0.2 rounded-full bg-blue-600 text-white text-[10px] font-bold">
                 {changes.length} {changes.length === 1 ? t.home.change : t.home.changes}
               </span>
             </div>

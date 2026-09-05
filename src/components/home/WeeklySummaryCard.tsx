@@ -71,7 +71,7 @@ export function WeeklySummaryCard() {
               className={`flex flex-col items-center justify-center p-2 rounded-xl ${item.bg} border border-transparent transition text-center`}
             >
               <Icon className={`w-4 h-4 mb-1 ${item.color}`} />
-              <div className="text-base font-extrabold text-zinc-900 dark:text-zinc-100">
+              <div className="text-base font-bold text-zinc-900 dark:text-zinc-100">
                 {item.value}
               </div>
               <div className="text-[9px] font-medium text-zinc-600 dark:text-zinc-400 truncate max-w-full leading-tight">

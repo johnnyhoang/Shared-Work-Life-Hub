@@ -64,7 +64,7 @@ export function Header() {
         <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
           {/* Left: Brand & Clocks */}
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 font-black text-base sm:text-lg tracking-tight text-zinc-900 dark:text-zinc-50">
+            <div className="flex items-center gap-2 font-bold text-base sm:text-lg tracking-tight text-zinc-900 dark:text-zinc-50">
               <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse" />
               <span>Hub</span>
             </div>

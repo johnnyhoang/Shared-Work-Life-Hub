@@ -102,7 +102,7 @@ interface HubContextType {
 const HubContext = createContext<HubContextType | undefined>(undefined);
 
 export function HubProvider({ children }: { children: React.ReactNode }) {
-  const [activeUserId, setActiveUserId] = useState<string>('usr_johnny');
+  const [activeUserId, setActiveUserId] = useState<string>('');
   const [hubState, setHubState] = useState<HubState | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [activeTab, setActiveTab] = useState<NavigationTab>('home');
@@ -113,20 +113,15 @@ export function HubProvider({ children }: { children: React.ReactNode }) {
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
-  // Load saved user from localStorage
-  useEffect(() => {
-    const saved = localStorage.getItem('hub_active_user');
-    if (saved) {
-      setActiveUserId(saved);
-    }
-  }, []);
-
   const refreshHub = useCallback(async () => {
     try {
-      const res = await fetch(`/api/hub?userId=${activeUserId}`);
+      const res = await fetch('/api/hub');
       if (res.ok) {
         const data: HubState = await res.json();
         setHubState(data);
+        if (!activeUserId && data.currentUser) {
+          setActiveUserId(data.currentUser.id);
+        }
       }
     } catch (err) {
       console.error('Failed to refresh hub state:', err);
@@ -139,17 +134,20 @@ export function HubProvider({ children }: { children: React.ReactNode }) {
     refreshHub();
   }, [refreshHub]);
 
+  const currentUserId = hubState?.currentUser?.id || activeUserId;
+
   const switchUser = (userId: string) => {
     setActiveUserId(userId);
     localStorage.setItem('hub_active_user', userId);
   };
 
   const markVisited = async () => {
+    if (!currentUserId) return;
     try {
       await fetch('/api/users/visit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: activeUserId }),
+        body: JSON.stringify({ userId: currentUserId }),
       });
       await refreshHub();
     } catch (err) {
@@ -182,7 +180,7 @@ export function HubProvider({ children }: { children: React.ReactNode }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...params,
-          creator_id: activeUserId,
+          creator_id: currentUserId,
         }),
       });
       if (!res.ok) return null;
@@ -202,7 +200,7 @@ export function HubProvider({ children }: { children: React.ReactNode }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...updates,
-          actor_id: activeUserId,
+          actor_id: currentUserId,
         }),
       });
       if (!res.ok) return null;
@@ -220,7 +218,7 @@ export function HubProvider({ children }: { children: React.ReactNode }) {
 
   const deleteTask = async (id: string): Promise<boolean> => {
     try {
-      const res = await fetch(`/api/tasks/${id}?actor_id=${activeUserId}`, {
+      const res = await fetch(`/api/tasks/${id}?actor_id=${currentUserId}`, {
         method: 'DELETE',
       });
       if (res.ok) {
@@ -256,7 +254,7 @@ export function HubProvider({ children }: { children: React.ReactNode }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...params,
-          actor_id: activeUserId,
+          actor_id: currentUserId,
         }),
       });
       if (!res.ok) return null;
@@ -276,7 +274,7 @@ export function HubProvider({ children }: { children: React.ReactNode }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...updates,
-          actor_id: activeUserId,
+          actor_id: currentUserId,
         }),
       });
       if (!res.ok) return null;
@@ -305,7 +303,7 @@ export function HubProvider({ children }: { children: React.ReactNode }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...params,
-          creator_id: activeUserId,
+          creator_id: currentUserId,
         }),
       });
       if (!res.ok) return null;
@@ -325,7 +323,7 @@ export function HubProvider({ children }: { children: React.ReactNode }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...updates,
-          actor_id: activeUserId,
+          actor_id: currentUserId,
         }),
       });
       if (!res.ok) return null;
@@ -346,7 +344,7 @@ export function HubProvider({ children }: { children: React.ReactNode }) {
         body: JSON.stringify({
           action: 'convert',
           assignee_id,
-          actor_id: activeUserId,
+          actor_id: currentUserId,
         }),
       });
       if (!res.ok) return null;
@@ -372,7 +370,7 @@ export function HubProvider({ children }: { children: React.ReactNode }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...params,
-          user_id: activeUserId,
+          user_id: currentUserId,
         }),
       });
       if (!res.ok) return null;
@@ -390,10 +388,7 @@ export function HubProvider({ children }: { children: React.ReactNode }) {
       const res = await fetch(`/api/knowledge/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...updates,
-          actor_id: activeUserId,
-        }),
+        body: JSON.stringify(updates),
       });
       if (!res.ok) return null;
       const updated = await res.json();
@@ -417,7 +412,7 @@ export function HubProvider({ children }: { children: React.ReactNode }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...params,
-          created_by_id: activeUserId,
+          created_by_id: currentUserId,
         }),
       });
       if (!res.ok) return null;
@@ -456,7 +451,7 @@ export function HubProvider({ children }: { children: React.ReactNode }) {
         body: JSON.stringify({
           entity_type: entityType,
           entity_id: entityId,
-          user_id: activeUserId,
+          user_id: currentUserId,
           content,
         }),
       });
@@ -477,7 +472,7 @@ export function HubProvider({ children }: { children: React.ReactNode }) {
       value={{
         hubState,
         isLoading,
-        activeUserId,
+        activeUserId: currentUserId,
         switchUser,
         refreshHub,
         markVisited,
