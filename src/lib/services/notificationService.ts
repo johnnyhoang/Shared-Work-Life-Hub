@@ -1,6 +1,45 @@
 import { NotificationSettings, DigestPayload } from '@/types';
 
 /**
+ * Rejects webhook URLs that point back into infrastructure rather than out to a
+ * chat provider. Without this, a user-supplied "webhook" makes the server issue
+ * requests to anything reachable from it — cloud metadata endpoints
+ * (169.254.169.254), localhost admin ports, private LAN ranges.
+ *
+ * Deliberately an allow-by-default check on the public internet rather than a
+ * domain allowlist: people legitimately relay these through n8n, Make, or their
+ * own host. HTTPS is required so tokens are not sent in clear text.
+ */
+export function isSafeWebhookUrl(raw: string | undefined | null): boolean {
+  if (!raw) return false;
+  let url: URL;
+  try {
+    url = new URL(raw);
+  } catch {
+    return false;
+  }
+  if (url.protocol !== 'https:') return false;
+
+  const host = url.hostname.toLowerCase();
+  if (host === 'localhost' || host.endsWith('.localhost')) return false;
+  if (host.endsWith('.local') || host.endsWith('.internal') || host.endsWith('.home.arpa')) return false;
+  // IPv6 literals (::1, fc00::/7 and friends) — the hostname keeps its colons.
+  if (host.includes(':')) return false;
+
+  const v4 = host.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+  if (v4) {
+    const [a, b] = [Number(v4[1]), Number(v4[2])];
+    if (a === 0 || a === 10 || a === 127) return false;          // this-host, private, loopback
+    if (a === 169 && b === 254) return false;                     // link-local + cloud metadata
+    if (a === 172 && b >= 16 && b <= 31) return false;            // private
+    if (a === 192 && b === 168) return false;                     // private
+    if (a === 100 && b >= 64 && b <= 127) return false;           // carrier NAT
+    if (a >= 224) return false;                                   // multicast / reserved
+  }
+  return true;
+}
+
+/**
  * Gửi tin nhắn đến Slack Webhook (Block Kit format)
  */
 export async function sendSlackNotification(webhookUrl: string, message: {
@@ -120,7 +159,10 @@ export async function sendZaloNotification(config: {
 }): Promise<{ success: boolean; error?: string }> {
   try {
     // 1. Ưu tiên gửi qua Zalo Webhook URL nếu được cấu hình
-    if (config.webhookUrl && config.webhookUrl.startsWith('http')) {
+    if (config.webhookUrl) {
+      if (!isSafeWebhookUrl(config.webhookUrl)) {
+        return { success: false, error: 'Zalo Webhook URL khong hop le (can HTTPS, khong tro vao dia chi noi bo)' };
+      }
       const res = await fetch(config.webhookUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -159,7 +201,10 @@ export async function sendMessengerNotification(config: {
   text: string;
 }): Promise<{ success: boolean; error?: string }> {
   try {
-    if (config.webhookUrl && config.webhookUrl.startsWith('http')) {
+    if (config.webhookUrl) {
+      if (!isSafeWebhookUrl(config.webhookUrl)) {
+        return { success: false, error: 'Messenger Webhook URL khong hop le (can HTTPS, khong tro vao dia chi noi bo)' };
+      }
       const res = await fetch(config.webhookUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

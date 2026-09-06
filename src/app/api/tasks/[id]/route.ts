@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
 import {
   getSupabaseTaskById,
   updateSupabaseTask,
@@ -29,10 +30,20 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+    }
+
     const { id } = await params;
-    const body = await request.json();
-    const { actor_id, ...updates } = body;
-    const task = await updateSupabaseTask(id, updates, actor_id);
+    const updates = await request.json();
+    // The actor is whoever holds the session. A client-supplied actor_id would
+    // let anyone forge activity-log entries under another member's name.
+    delete updates.actor_id;
+    const task = await updateSupabaseTask(id, updates, user.id);
     return NextResponse.json(task);
   } catch (error) {
     console.error('Failed to update task:', error);
@@ -45,11 +56,16 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = await params;
-    const { searchParams } = new URL(request.url);
-    const actor_id = searchParams.get('actor_id') || undefined;
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+    }
 
-    const success = await deleteSupabaseTask(id, actor_id);
+    const { id } = await params;
+    const success = await deleteSupabaseTask(id, user.id);
     if (!success) {
       return NextResponse.json({ error: 'not_found' }, { status: 404 });
     }

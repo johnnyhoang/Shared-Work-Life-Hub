@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
 import {
   getSupabaseProjectById,
   updateSupabaseProject,
@@ -29,10 +30,19 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+    }
+
     const { id } = await params;
-    const body = await request.json();
-    const { actor_id, ...updates } = body;
-    const project = await updateSupabaseProject(id, updates, actor_id);
+    const updates = await request.json();
+    // Actor comes from the session, never from the request body.
+    delete updates.actor_id;
+    const project = await updateSupabaseProject(id, updates, user.id);
     return NextResponse.json(project);
   } catch (error) {
     console.error('Failed to update project:', error);

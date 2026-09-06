@@ -308,8 +308,6 @@ export function HubProvider({ children }: { children: React.ReactNode }) {
     try {
       await fetch('/api/users/visit', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: currentUserId }),
       });
       await refreshHub();
     } catch (err) {
@@ -363,7 +361,6 @@ export function HubProvider({ children }: { children: React.ReactNode }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...updates,
-          actor_id: currentUserId,
         }),
       });
       if (!res.ok) return null;
@@ -381,7 +378,7 @@ export function HubProvider({ children }: { children: React.ReactNode }) {
 
   const deleteTask = async (id: string): Promise<boolean> => {
     try {
-      const res = await fetch(`/api/tasks/${id}?actor_id=${currentUserId}`, {
+      const res = await fetch(`/api/tasks/${id}`, {
         method: 'DELETE',
       });
       if (res.ok) {
@@ -417,7 +414,6 @@ export function HubProvider({ children }: { children: React.ReactNode }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...params,
-          actor_id: currentUserId,
           workspace_id: activeWorkspace?.id || null,
         }),
       });
@@ -438,7 +434,6 @@ export function HubProvider({ children }: { children: React.ReactNode }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...updates,
-          actor_id: currentUserId,
         }),
       });
       if (!res.ok) return null;
@@ -488,7 +483,6 @@ export function HubProvider({ children }: { children: React.ReactNode }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...updates,
-          actor_id: currentUserId,
         }),
       });
       if (!res.ok) return null;
@@ -509,7 +503,6 @@ export function HubProvider({ children }: { children: React.ReactNode }) {
         body: JSON.stringify({
           action: 'convert',
           assignee_id,
-          actor_id: currentUserId,
         }),
       });
       if (!res.ok) return null;

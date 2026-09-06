@@ -15,7 +15,9 @@ export async function GET(request: NextRequest) {
     } = await supabase.auth.getUser();
 
     const { searchParams } = new URL(request.url);
-    const targetUserId = searchParams.get('userId') || user?.id;
+    // These rows hold Slack/Telegram/Discord webhooks and bot tokens, so the
+    // target is always the session user; a client-supplied id is ignored.
+    const targetUserId = user?.id;
 
     if (!targetUserId) {
       return NextResponse.json({ error: 'invalid_request' }, { status: 400 });
@@ -37,7 +39,7 @@ export async function POST(request: NextRequest) {
     } = await supabase.auth.getUser();
 
     const body = await request.json();
-    const targetUserId = body.user_id || user?.id;
+    const targetUserId = user?.id;
 
     if (!targetUserId) {
       return NextResponse.json({ error: 'invalid_request' }, { status: 400 });

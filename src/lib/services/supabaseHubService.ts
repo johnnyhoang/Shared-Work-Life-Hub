@@ -161,14 +161,6 @@ export async function getSupabaseHubState(requestedWorkspaceId?: string): Promis
           role: 'admin',
         });
 
-        // Migrate any unassigned tasks/projects to this initial workspace
-        await supabase.from('sw_projects').update({ workspace_id: newWs.id }).is('workspace_id', null);
-        await supabase.from('sw_tasks').update({ workspace_id: newWs.id }).is('workspace_id', null);
-        await supabase.from('sw_ideas').update({ workspace_id: newWs.id }).is('workspace_id', null);
-        await supabase.from('sw_knowledge').update({ workspace_id: newWs.id }).is('workspace_id', null);
-        await supabase.from('sw_decisions').update({ workspace_id: newWs.id }).is('workspace_id', null);
-        await supabase.from('sw_activities').update({ workspace_id: newWs.id }).is('workspace_id', null);
-
         const initialWs: Workspace = {
           id: newWs.id,
           name: newWs.name,
@@ -283,7 +275,7 @@ export async function getSupabaseHubState(requestedWorkspaceId?: string): Promis
     .order('updated_at', { ascending: false });
 
   if (activeWorkspace) {
-    projectQuery = projectQuery.or(`workspace_id.eq.${activeWorkspace.id},workspace_id.is.null`);
+    projectQuery = projectQuery.eq('workspace_id', activeWorkspace.id);
   }
 
   const { data: rawProjects } = await projectQuery;
@@ -323,7 +315,7 @@ export async function getSupabaseHubState(requestedWorkspaceId?: string): Promis
     .order('updated_at', { ascending: false });
 
   if (activeWorkspace) {
-    taskQuery = taskQuery.or(`workspace_id.eq.${activeWorkspace.id},workspace_id.is.null`);
+    taskQuery = taskQuery.eq('workspace_id', activeWorkspace.id);
   }
 
   const { data: rawTasks } = await taskQuery;
@@ -355,7 +347,7 @@ export async function getSupabaseHubState(requestedWorkspaceId?: string): Promis
     .order('updated_at', { ascending: false });
 
   if (activeWorkspace) {
-    ideaQuery = ideaQuery.or(`workspace_id.eq.${activeWorkspace.id},workspace_id.is.null`);
+    ideaQuery = ideaQuery.eq('workspace_id', activeWorkspace.id);
   }
 
   const { data: rawIdeas } = await ideaQuery;
@@ -381,7 +373,7 @@ export async function getSupabaseHubState(requestedWorkspaceId?: string): Promis
     .order('updated_at', { ascending: false });
 
   if (activeWorkspace) {
-    knowledgeQuery = knowledgeQuery.or(`workspace_id.eq.${activeWorkspace.id},workspace_id.is.null`);
+    knowledgeQuery = knowledgeQuery.eq('workspace_id', activeWorkspace.id);
   }
 
   const { data: rawKnowledge } = await knowledgeQuery;
@@ -407,7 +399,7 @@ export async function getSupabaseHubState(requestedWorkspaceId?: string): Promis
     .order('created_at', { ascending: false });
 
   if (activeWorkspace) {
-    decisionQuery = decisionQuery.or(`workspace_id.eq.${activeWorkspace.id},workspace_id.is.null`);
+    decisionQuery = decisionQuery.eq('workspace_id', activeWorkspace.id);
   }
 
   const { data: rawDecisions } = await decisionQuery;
@@ -439,7 +431,7 @@ export async function getSupabaseHubState(requestedWorkspaceId?: string): Promis
     .limit(40);
 
   if (activeWorkspace) {
-    activityQuery = activityQuery.or(`workspace_id.eq.${activeWorkspace.id},workspace_id.is.null`);
+    activityQuery = activityQuery.eq('workspace_id', activeWorkspace.id);
   }
 
   const { data: rawActivities } = await activityQuery;
@@ -557,36 +549,6 @@ export async function getSupabaseHubState(requestedWorkspaceId?: string): Promis
     pendingInvitations,
     workspaceMembers,
   };
-}
-
-export async function updateProfileRole(userId: string, role: UserRole) {
-  const supabase = await createClient();
-
-  const {
-    data: { user: caller },
-  } = await supabase.auth.getUser();
-
-  if (caller) {
-    const { data: callerProfile } = await supabase
-      .from('sw_profiles')
-      .select('role')
-      .eq('id', caller.id)
-      .maybeSingle();
-
-    if (callerProfile?.role !== 'admin') {
-      throw new Error('Chỉ Trưởng nhóm (Lead) mới có quyền thay đổi vai trò của thành viên.');
-    }
-  }
-
-  const { data, error } = await supabase
-    .from('sw_profiles')
-    .update({ role })
-    .eq('id', userId)
-    .select()
-    .single();
-
-  if (error) throw error;
-  return data;
 }
 
 export async function updateLastVisitedSupabase(userId: string) {

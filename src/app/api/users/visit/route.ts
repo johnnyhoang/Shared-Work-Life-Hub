@@ -1,16 +1,21 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
 import { updateLastVisitedSupabase } from '@/lib/services/supabaseHubService';
 
 export const dynamic = 'force-dynamic';
 
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
-    const body = await request.json();
-    const { userId } = body;
-    if (!userId) {
-      return NextResponse.json({ error: 'invalid_request' }, { status: 400 });
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
     }
-    await updateLastVisitedSupabase(userId);
+
+    // Only ever stamp your own visit.
+    await updateLastVisitedSupabase(user.id);
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Failed to update last visited:', error);
