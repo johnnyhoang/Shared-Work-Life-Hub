@@ -9,7 +9,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 <!-- END:nextjs-agent-rules -->
 
 # Git Rules
-- **Không tự ý commit/push:** Tuyệt đối không tự động chạy `git commit` hoặc `git push` nếu người dùng không có yêu cầu cụ thể.
+- **Tự động Commit & Push (Auto Push):** Tự động thực hiện `git add`, `git commit` và `git push origin master` sau khi hoàn thành mỗi tác vụ hoặc tính năng được yêu cầu.
 
 # Global UI Rules
 - **Không bao giờ hiển thị thông tin kỹ thuật trên UI:** Tuyệt đối không hiển thị UUIDs, database IDs (`prof-xxx`, `ws-xxx`), khóa ngoại, hoặc chuỗi raw SQL errors.

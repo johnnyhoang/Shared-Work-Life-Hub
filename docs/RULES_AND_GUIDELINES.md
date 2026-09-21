@@ -19,8 +19,8 @@
 
 ## 2. 🌿 Quy tắc quản trị mã nguồn (Git Rules)
 
-- **KHÔNG TỰ Ý COMMIT HOẶC PUSH**: Tuyệt đối không tự động chạy `git commit` hoặc `git push` trong bất kỳ tình huống nào nếu người dùng không đưa ra yêu cầu cụ thể.
-- Giữ cây thư mục mã nguồn sạch sẽ, không commit các file rác, file `.env` chứa mật khẩu thực tế hoặc artifact tạm.
+- **TỰ ĐỘNG COMMIT & PUSH (AUTO PUSH)**: Tự động thực hiện `git add`, `git commit` và `git push origin master` sau khi hoàn thành mỗi tính năng hoặc đợt cập nhật mã nguồn theo yêu cầu của người dùng.
+- Đảm bảo commit message rõ ràng, ngắn gọn và giữ nhánh `master` luôn đồng bộ với remote repository.
 
 ---
 
